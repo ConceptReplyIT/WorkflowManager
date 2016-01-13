@@ -1,0 +1,22 @@
+import org.drools.core.process.core.datatype.impl.type.StringDataType;
+[
+  // the SyncEJB work item
+  [
+    "name" : "syncEJB",
+    "parameters" : [
+      "EJBCommandClass" : new StringDataType(),
+    ],
+    "displayName" : "SyncEJB",
+    "icon" : "icons/syncEJB.png"
+  ],
+  
+  // the AsyncEJB work item
+  [
+    "name" : "asyncEJB",
+    "parameters" : [
+      "EJBCommandClass" : new StringDataType(),
+    ],
+    "displayName" : "AsyncEJB",
+    "icon" : "icons/asyncEJB.png"
+  ]
+]
