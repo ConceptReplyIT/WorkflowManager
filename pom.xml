@@ -18,12 +18,13 @@
 		<java.version>1.7</java.version>
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<maven.compiler.source>1.7</maven.compiler.source>
-		<version.surefire.plugin>2.10</version.surefire.plugin>
-		<log4j.version>2.1</log4j.version>
+		<maven.compiler.version>3.3</maven.compiler.version>	
+		<version.surefire.plugin>2.19.1</version.surefire.plugin>
+		<log4j.version>2.5</log4j.version>
 		<jbpm.version>6.3.0.Final</jbpm.version>
 		<javatuples.version>1.2</javatuples.version>
 		<j2ee.version>6.0</j2ee.version>
-		<commons-lang.version>2.6</commons-lang.version>
+		<commons-lang3.version>3.4</commons-lang3.version>
 	</properties>
 
 	<dependencyManagement>
@@ -41,86 +42,77 @@
 
 	<dependencies>
 		<!-- j2ee -->
-<!--  		<dependency>
+  		<dependency>
     		<groupId>javax</groupId>
     		<artifactId>javaee-api</artifactId>
     		<version>${j2ee.version}</version>
     		<scope>provided</scope>
-		</dependency> -->
- 		<dependency>
+		</dependency>
+<!--  		<dependency>
 			<groupId>org.jboss.spec</groupId>
 			<artifactId>jboss-javaee-6.0</artifactId>
 			<version>3.0.3.Final</version>
 			<type>pom</type>
 			<scope>provided</scope>
-		</dependency>
+		</dependency> -->
+		
+		<!-- Apache Commons Lang -->
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>${commons-lang.version}</version>
-		</dependency>
+			<groupId>org.apache.commons</groupId>
+  			<artifactId>commons-lang3</artifactId>
+  			<version>${commons-lang3.version}</version>
+  		</dependency>
+		
 		<!-- jBPM -->
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-api</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-audit</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-bpmn2</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-human-task-core</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-human-task-audit</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-kie-services</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-shared-services</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-persistence-jpa</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-runtime-manager</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-services-cdi</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-workitems</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-test</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-executor</artifactId>
@@ -130,7 +122,7 @@
 			<artifactId>jbpm-executor-cdi</artifactId>
 		</dependency>
 		
-		<!-- Log4J 2 -->
+		<!-- Log4J -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
@@ -147,7 +139,6 @@
         	<groupId>org.javatuples</groupId>
         	<artifactId>javatuples</artifactId>
         	<version>${javatuples.version}</version>
-        	<scope>compile</scope>
     	</dependency>
 	</dependencies>
 
@@ -157,7 +148,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>${maven.compiler.version}</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -181,23 +172,4 @@
 			<url>http://prismanexus.cloud.reply.eu:8081/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>versions-maven-plugin</artifactId>
-				<version>2.2</version>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>dependency-updates-report</report>
-							<report>plugin-updates-report</report>
-							<report>property-updates-report</report>
-						</reports>
-					</reportSet>
-				</reportSets>
-			</plugin>
-		</plugins>
-	</reporting>
 </project>

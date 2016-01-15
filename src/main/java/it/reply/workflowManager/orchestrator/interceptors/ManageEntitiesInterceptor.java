@@ -33,23 +33,20 @@ public class ManageEntitiesInterceptor {
 
 	@AroundInvoke
 	public Object aroundInvoke(InvocationContext ic) throws Exception {
-	//	if (ic.getMethod().getName().equals("customExecute")) {
-			ManageEntities annotation = ic.getMethod().getAnnotation(ManageEntities.class);
-			if (annotation == null) {
-					return ic.proceed();
-			}
-			Class<? extends Object>[] classes = annotation.EntityClasses();
-			if (ic.getParameters() == null || ic.getParameters().length != 1 || !(ic.getParameters()[0] instanceof CommandContext)) {
+		ManageEntities annotation = ic.getMethod().getAnnotation(ManageEntities.class);
+		if (annotation == null) {
 				return ic.proceed();
-			}
-			CommandContext ctx = (CommandContext) ic.getParameters()[0];
-			if (ctx != null && BaseCommand.getWorkItem(ctx) != null) {
-				Map<String, Object> parameters = BaseCommand.getWorkItem(ctx).getParameters();
-				if (parameters != null) {
-					for (Entry<String, Object> entry : parameters.entrySet()) {
-						switch (annotation.policy()) {
-						case DO_NOTHING:
-							break;
+		}
+		Class<? extends Object>[] classes = annotation.EntityClasses();
+		if (ic.getParameters() == null || ic.getParameters().length != 1 || !(ic.getParameters()[0] instanceof CommandContext)) {
+			return ic.proceed();
+		}
+		CommandContext ctx = (CommandContext) ic.getParameters()[0];
+		if (ctx != null && BaseCommand.getWorkItem(ctx) != null) {
+			Map<String, Object> parameters = BaseCommand.getWorkItem(ctx).getParameters();
+			if (parameters != null) {
+				for (Entry<String, Object> entry : parameters.entrySet()) {
+					switch (annotation.policy()) {
 						case MERGE:
 							parameters.put(entry.getKey(), entityRefresher.mergeEntities(entry.getValue(), classes));
 							break;
@@ -62,16 +59,14 @@ public class ManageEntitiesInterceptor {
 						case FIND:
 							parameters.put(entry.getKey(), entityRefresher.findEntities(entry.getValue(), classes));
 							break;
+						case DO_NOTHING:
 						default:
 							break;
-						}
 					}
 				}
 			}
-			return ic.proceed();
-//		} else {
-//			return ic.proceed();
-//		}
+		}
+		return ic.proceed();
 	}
 
 }

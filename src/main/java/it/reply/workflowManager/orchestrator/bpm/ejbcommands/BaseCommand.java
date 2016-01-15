@@ -16,6 +16,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
+import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
 import org.hibernate.StaleObjectStateException;
@@ -75,6 +76,10 @@ public abstract class BaseCommand implements IEJBCommand {
 		return EJBWorkItemHelper.getProcessInstanceId(ctx);
 	}
 
+	public static it.reply.workflowManager.dsl.Error getErrorResult(CommandContext ctx) {
+		return (it.reply.workflowManager.dsl.Error) getWorkItem(ctx).getParameter(Constants.ERROR_RESULT);
+	}
+	
 	/**
 	 * <b>This method SHOULD NOT be overridden !</b> <br/>
 	 * Use the {@link BaseCommand#customExecute(CommandContext)} method for the
@@ -109,7 +114,11 @@ public abstract class BaseCommand implements IEJBCommand {
 					logCommandRetry(exRes, tries, maxNumOfTries);
 					exRes = ((RetriableCommand) proxyCommand).retry(ctx);
 				}
-				userTx.commit();
+				if (userTx.getStatus() == Status.STATUS_MARKED_ROLLBACK) {
+					userTx.rollback();
+				} else {
+					userTx.commit();
+				}
 			} catch (Exception e) {
 				userTx.rollback();
 				boolean persistenceExceptionFound = false;
@@ -146,13 +155,11 @@ public abstract class BaseCommand implements IEJBCommand {
 	 * Logs command started info.
 	 */
 	protected void logCommandStarted(final CommandContext ctx) {
-		// Logging into Prisma Log
 		String WIId = "TBD";
 		String tag = "(Task: " + this.getClass().getName() + ", PID: "
 				+ getProcessInstanceId(ctx) + ", WIId: " + WIId + ", params: "
 				+ getWorkItem(ctx).getParameters() + ") - ";
 		logger.setTag(tag);
-		// System.out.println(tag + "STARTED");
 		logger.info("STARTED");
 	}
 
@@ -161,7 +168,6 @@ public abstract class BaseCommand implements IEJBCommand {
 	 */
 	protected void logCommandRetry(final ExecutionResults exResults,
 			int tryNum, int maxNumOfTries) {
-		// Logging into Prisma Log
 		try {
 			StringBuilder sb = new StringBuilder();
 			sb.append("RETRY, Try ").append(tryNum).append(" of ")
@@ -172,9 +178,6 @@ public abstract class BaseCommand implements IEJBCommand {
 				sb.append("\nRetry caused by:\n").append(signalEvent.getPayload().getVerbose()).append("\n");
 			}
 			logger.info(sb.toString());
-			// LOG.info(logger.getTag() + "ENDED, ResultStatus("
-			// + exResults.getData(Constants.RESULT_STATUS) + "), Result("
-			// + exResults.getData("Result") + ")");
 		} catch (Exception ex) {
 			LOG.warn("Cannot log EJBCommand result.", ex);
 		}
@@ -184,14 +187,10 @@ public abstract class BaseCommand implements IEJBCommand {
 	 * Logs command ended info.
 	 */
 	protected void logCommandEnded(final ExecutionResults exResults) {
-		// Logging into Prisma Log
 		try {
 			logger.info("ENDED, ResultStatus("
 					+ exResults.getData(Constants.RESULT_STATUS) + "), Result("
 					+ (exResults.getData("Result") != null ? exResults.getData("Result") : "") + ")");
-			// LOG.info(logger.getTag() + "ENDED, ResultStatus("
-			// + exResults.getData(Constants.RESULT_STATUS) + "), Result("
-			// + exResults.getData("Result") + ")");
 		} catch (Exception ex) {
 			LOG.warn("Cannot log EJBCommand result.", ex);
 		}

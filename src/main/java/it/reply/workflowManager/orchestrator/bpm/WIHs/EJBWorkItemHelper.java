@@ -109,17 +109,17 @@ public final class EJBWorkItemHelper {
 	 * @param logger
 	 *            an optional logger to log events
 	 */
+	@SuppressWarnings("unchecked")
 	public static void checkWorkItemOutcome(ExecutionResults results,
 			WorkItem workItem, CommandContext ctx, Logger logger) {
 		RuntimeEngine engine = getRuntimeEngine(ctx);
-		@SuppressWarnings("unchecked")
 		SignalEvent<Error> signalEvent = (SignalEvent<Error>) results.getData(Constants.SIGNAL_EVENT);
 		if (signalEvent != null) {
 			Object payload = null;
 			switch (signalEvent.getType()) {
 			default:
 			case ERROR:
-				payload = results.getData("Error");
+				payload = results.getData(Constants.ERROR_RESULT);
 				break;
 			
 			}

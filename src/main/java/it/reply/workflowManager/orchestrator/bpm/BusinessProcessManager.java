@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.DependsOn;
+import javax.ejb.Local;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -39,8 +40,8 @@ import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 
 @DependsOn("OrchestratorContext")
 @Startup
-@Singleton
-@ApplicationScoped
+@javax.inject.Singleton
+//@ApplicationScoped
 /**
  * This class is the manager of Business Processes execution. It can be used to launch a new process
  * 
@@ -48,6 +49,7 @@ import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
  *
  */
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@Local(BusinessProcessManager.class)
 public class BusinessProcessManager {
 
 	public enum RUNTIME_STRATEGY {
