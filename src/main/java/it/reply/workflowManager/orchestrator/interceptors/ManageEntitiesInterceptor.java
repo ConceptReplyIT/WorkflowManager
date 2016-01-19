@@ -26,10 +26,7 @@ import org.kie.api.executor.CommandContext;
 public class ManageEntitiesInterceptor {
 
 	@Inject
-	EntityRefresher entityRefresher;
-	
-	public ManageEntitiesInterceptor() {
-	}
+	private EntityRefresher entityRefresher;
 
 	@AroundInvoke
 	public Object aroundInvoke(InvocationContext ic) throws Exception {

@@ -28,9 +28,7 @@ public abstract class CDIBaseCommand implements Command {
 
 		logger = CustomLoggerFactory.getLogger(this.getClass());
 		try {
-			InitialContext initialContext = new InitialContext();
-			BeanManager beanManager = (BeanManager) initialContext.lookup("java:comp/BeanManager");
-			orchestratorContext = CDIUtils.createBean(OrchestratorContext.class, beanManager, new Annotation[0]);
+			orchestratorContext = getBean(OrchestratorContext.class);
 			if (orchestratorContext == null)
 				throw new Exception();
 		} catch (Exception e) {
@@ -42,4 +40,16 @@ public abstract class CDIBaseCommand implements Command {
 		}
 	}
 
+	protected <T> T getBean(Class<T> beanClass) throws Exception {
+		return getBean(beanClass, (Annotation[]) null);
+	}
+	
+	protected <T> T getBean(Class<T> beanClass, Annotation... bindings) throws Exception {
+		InitialContext initialContext = new InitialContext();
+		BeanManager beanManager = (BeanManager) initialContext.lookup("java:comp/BeanManager");
+		if (bindings == null) {
+			bindings = new Annotation[0];
+		}
+		return CDIUtils.createBean(beanClass, beanManager, bindings);
+	}
 }

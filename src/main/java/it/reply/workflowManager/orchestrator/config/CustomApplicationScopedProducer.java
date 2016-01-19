@@ -1,21 +1,19 @@
 package it.reply.workflowManager.orchestrator.config;
 
-import java.util.List;
-
 import it.reply.workflowManager.utils.Constants;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import javax.transaction.TransactionManager;
 
-import org.javatuples.Pair;
 import org.jbpm.runtime.manager.impl.SimpleRuntimeEnvironment;
 import org.jbpm.services.cdi.impl.manager.InjectableRegisterableItemsFactory;
-import org.kie.api.io.ResourceType;
+import org.kie.api.executor.ExecutorService;
 import org.kie.api.runtime.EnvironmentName;
 import org.kie.api.runtime.manager.RuntimeEnvironment;
 import org.kie.api.runtime.manager.RuntimeEnvironmentBuilder;
@@ -38,8 +36,11 @@ public class CustomApplicationScopedProducer {
 	@Inject
 	private UserGroupCallback usergroupCallback;
 
-//	@Inject
-//	private ExecutorService executorService;
+	@Inject
+	private ExecutorService executorService;
+	
+	@Inject
+	private ConfigProducer configProducer;
 
 	@PersistenceUnit(unitName = Constants.PERSISTENCE_UNIT_NAME)
 	private EntityManagerFactory emf;
@@ -48,13 +49,10 @@ public class CustomApplicationScopedProducer {
 	private TransactionManager tm;
 
 	@Produces
+	@PersistenceUnit(unitName = Constants.PERSISTENCE_UNIT_NAME)
 	public EntityManagerFactory produceEntityManagerFactory() {
-		return this.emf;
+		return emf;
 	}
-
-	@Inject
-	private List<Pair<org.kie.api.io.Resource, ResourceType>> resources;
-	
 
 	@Produces
 	@Singleton
@@ -69,46 +67,18 @@ public class CustomApplicationScopedProducer {
 				.registerableItemsFactory(factory)
 				.persistence(true)
 				.addEnvironmentEntry(EnvironmentName.TRANSACTION_MANAGER, tm)
-//				.addEnvironmentEntry("ExecutorService", executorService)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/deploy/cloudify/cloudify-paas-deploy.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/deploy/heat/heat-paas-deploy.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/services/paas-provisioning.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/deploy/cloudify/cloudify-paas-undeploy.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/deploy/heat/heat-paas-undeploy.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/services/paas-unprovisioning.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/deploy/heat/heat-paas-manage.bpmn"),
-//						ResourceType.BPMN2)
-//				.addAsset(
-//						ResourceFactory
-//								.newClassPathResource("business-processes/services/paas-management.bpmn"),
-//						ResourceType.BPMN2)
-						.get();
-		for (Pair<org.kie.api.io.Resource, ResourceType> resource : resources) {
-			((SimpleRuntimeEnvironment)environment).addAsset(resource.getValue0(), resource.getValue1());
+				.addEnvironmentEntry(Constants.EXECUTOR_SERVICE, executorService)
+				.get();
+		for (org.kie.api.io.Resource resource : configProducer.getResources()) {
+			((SimpleRuntimeEnvironment)environment).addAsset(resource, resource.getResourceType());
 		}
 		environment.getEnvironment().set(
 				EnvironmentName.USE_PESSIMISTIC_LOCKING, true);
 		return environment;
+	}
+	
+	public void disposeEnvironment(@Disposes @Singleton @PerProcessInstance @PerRequest RuntimeEnvironment re) {
+		re.close();
 	}
 
 }

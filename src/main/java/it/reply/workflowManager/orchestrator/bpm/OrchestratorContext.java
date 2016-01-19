@@ -2,9 +2,7 @@ package it.reply.workflowManager.orchestrator.bpm;
 
 import it.reply.workflowManager.orchestrator.bpm.ejbcommands.IEJBCommand;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -15,22 +13,21 @@ import javax.inject.Inject;
  * @author l.biava
  * 
  */
-@Singleton
-@Startup
+@ApplicationScoped
 public class OrchestratorContext {
 	
 	@Inject
 	private Instance<IEJBCommand> ejbCommands;
 
 	public IEJBCommand getCommand(String className) throws ClassNotFoundException {
-		// Check if the requested command class extends/implements another class in addition to BaseCommand or IEJBCommand.
-		// In this case the command must have at least a local view.
-		return ejbCommands.select(Class.forName(className).asSubclass(IEJBCommand.class)).get();
+		Class<? extends IEJBCommand> commandClass = Class.forName(className).asSubclass(IEJBCommand.class);
+		return getCommand(commandClass);
 	}
 	
-	@PostConstruct
-	public void init() {
-		System.out.println("OrchestratorContext Alive !");
-		System.out.flush();
+	public IEJBCommand getCommand(Class<? extends IEJBCommand> commandClass) {
+		// Check if the requested command class extends/implements another class in addition to BaseCommand or IEJBCommand.
+		// In this case the command must have at least a local view.
+		return ejbCommands.select(commandClass).get();
 	}
+
 }

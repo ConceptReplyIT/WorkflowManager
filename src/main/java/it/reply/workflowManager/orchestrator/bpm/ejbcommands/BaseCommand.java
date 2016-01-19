@@ -11,7 +11,6 @@ import it.reply.workflowManager.logging.CustomLogger;
 import it.reply.workflowManager.logging.CustomLoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.SessionContext;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.OptimisticLockException;
@@ -37,17 +36,12 @@ import org.apache.logging.log4j.util.Strings;
  * 
  */
 @ManageEntities
-// @Local(IEJBCommand.class)
-// @TransactionManagement(TransactionManagementType.BEAN)
 public abstract class BaseCommand implements IEJBCommand {
 
 	private static final Logger LOG = LogManager
 			.getLogger(BaseCommand.class);
 
 	protected CustomLogger logger;
-
-	@Resource
-	protected SessionContext context;
 	
 	@Resource
 	private UserTransaction userTx;
@@ -68,6 +62,11 @@ public abstract class BaseCommand implements IEJBCommand {
 	protected abstract ExecutionResults customExecute(CommandContext ctx)
 			throws Exception;
 
+	/**
+	 * Returns the proxy on which call business methods.
+	 */
+	protected abstract BaseCommand getFacade();
+	
 	public static WorkItem getWorkItem(CommandContext ctx) {
 		return (WorkItem) ctx.getData(Constants.WORKITEM);
 	}
@@ -89,7 +88,7 @@ public abstract class BaseCommand implements IEJBCommand {
 	public ExecutionResults execute(CommandContext ctx) throws Exception {
 
 		// If the command is not an EJB an IllegalStateException will be thrown
-		BaseCommand proxyCommand = context.getBusinessObject(this.getClass());
+		BaseCommand proxyCommand = getFacade();
 
 		logCommandStarted(ctx);
 
@@ -102,6 +101,11 @@ public abstract class BaseCommand implements IEJBCommand {
 						"Max num of retries must be > 0");
 			}
 		}
+		
+		if (userTx.getStatus() == Status.STATUS_ACTIVE) {
+			throw new IllegalStateException("There must be no active transaction");
+		}
+		
 		int tries = 0;
 		boolean retryError;
 		do {
@@ -150,7 +154,8 @@ public abstract class BaseCommand implements IEJBCommand {
 
 		return exRes;
 	}
-
+	
+	
 	/**
 	 * Logs command started info.
 	 */

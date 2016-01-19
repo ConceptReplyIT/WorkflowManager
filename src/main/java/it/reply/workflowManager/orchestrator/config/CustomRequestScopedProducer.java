@@ -16,6 +16,8 @@
 
 package it.reply.workflowManager.orchestrator.config;
 
+import it.reply.workflowManager.utils.Constants;
+
 import java.util.logging.Logger;
 
 import javax.enterprise.context.RequestScoped;
@@ -25,6 +27,7 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 
 @RequestScoped
 /**
@@ -39,11 +42,13 @@ public class CustomRequestScopedProducer {
 
     @Produces
     @RequestScoped
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT_NAME)
     public EntityManager getEntityManager() {
         EntityManager em = emf.createEntityManager();
         return em;
     }
 
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT_NAME)
     public void close(@Disposes EntityManager em) {
         em.close();
     }

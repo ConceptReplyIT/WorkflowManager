@@ -20,7 +20,6 @@ import org.kie.api.executor.ExecutionResults;
  * @author l.biava
  * 
  */
-//@Local(EJBDispatcherCommand.class)
 public class EJBDispatcherCommand extends CDIBaseCommand {
 
 	private static final Logger LOG = LogManager

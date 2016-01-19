@@ -5,7 +5,6 @@ import it.reply.workflowManager.orchestrator.bpm.WIHs.SyncEJBWorkItemHandler;
 import it.reply.workflowManager.orchestrator.bpm.commands.EJBDispatcherCommand;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -57,8 +56,9 @@ public class ApplicationWorkItemHandlersProducer implements
 			final String identifier, final Map<String, Object> params) {
 		final Map<String, WorkItemHandler> workItemHandlers = new HashMap<String, WorkItemHandler>();
 
-		System.setProperty("org.kie.executor.pool.size", "10");
-		executorService.setThreadPoolSize(10);
+		//System.setProperty("org.kie.executor.pool.size", "10");
+		executorService.setThreadPoolSize(1);
+		executorService.setInterval(30);
 		
 		if (!executorService.isActive()) {
 			LOG.info("Initializing ExecutorService.");
@@ -113,7 +113,7 @@ public class ApplicationWorkItemHandlersProducer implements
 						try {
 							ObjectInputStream ois = new ObjectInputStream(bis);
 							oldCtx = (CommandContext) ois.readObject();
-						} catch (ClassNotFoundException | IOException e) {
+						} catch (Exception e) {
 							executorService.cancelRequest(req.getId());
 							continue;
 						}
