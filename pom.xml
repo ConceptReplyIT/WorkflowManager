@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.reply</groupId>
 	<artifactId>workflow-manager</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -41,20 +41,6 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- j2ee -->
-  		<dependency>
-    		<groupId>javax</groupId>
-    		<artifactId>javaee-api</artifactId>
-    		<version>${j2ee.version}</version>
-    		<scope>provided</scope>
-		</dependency>
-<!--  		<dependency>
-			<groupId>org.jboss.spec</groupId>
-			<artifactId>jboss-javaee-6.0</artifactId>
-			<version>3.0.3.Final</version>
-			<type>pom</type>
-			<scope>provided</scope>
-		</dependency> -->
 		
 		<!-- Apache Commons Lang -->
 		<dependency>
@@ -62,65 +48,6 @@
   			<artifactId>commons-lang3</artifactId>
   			<version>${commons-lang3.version}</version>
   		</dependency>
-		
-		<!-- jBPM -->
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-audit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-bpmn2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-human-task-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-human-task-audit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-kie-services</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-shared-services</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-persistence-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-runtime-manager</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-services-cdi</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-workitems</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-test</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-executor</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-executor-cdi</artifactId>
-		</dependency>
 		
 		<!-- Log4J -->
 		<dependency>
@@ -140,20 +67,18 @@
         	<artifactId>javatuples</artifactId>
         	<version>${javatuples.version}</version>
     	</dependency>
-	</dependencies>
 
-	<build>
-		<finalName>workflow-manager</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven.compiler.version}</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
+	</dependencies>
+	
+	<packaging>pom</packaging>
+	<modules>
+		<module>workflow-manager-core</module>
+		<module>workflow-manager-cdi</module>
+		<module>workflow-manager-spring</module>
+	</modules>
 </project>
