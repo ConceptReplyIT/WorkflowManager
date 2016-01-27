@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import it.reply.workflowManager.orchestrator.bpm.AbstractBusinessProcessManager;
@@ -22,16 +23,14 @@ public class BusinessProcessManagerBean extends AbstractBusinessProcessManager {
 
   @Autowired
   @Qualifier("SINGLETON")
-  // @Singleton
   private RuntimeManager singletonRuntimeManager;
 
   @Autowired
   @Qualifier("PER_PROCESS_INSTANCE")
-  // @PerProcessInstance
   private RuntimeManager perProcessInstanceRuntimeManager;
 
   // @Autowired
-  // @PerRequest
+  // @Qualifier("PER_REQUEST")
   private RuntimeManager perRequestRuntimeManager;
 
   @Override
