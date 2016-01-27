@@ -6,13 +6,13 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>workflow-manager-cdi</artifactId>
-  <name>workflow-manager-cdi</name>
-  <description>workflow-manager-cdi</description>
+  <name>Workflow manager cdi</name>
+  <description>Workflow manager cdi extension</description>
   	<dependencies>
 	  	<dependency>
 			<groupId>it.reply</groupId>
 	    	<artifactId>workflow-manager-core</artifactId>
-	    	<version>0.0.2-SNAPSHOT</version>
+	    	<version>${project.version}</version>
 	  	</dependency>
 		<!-- j2ee -->
   		<dependency>
@@ -21,13 +21,6 @@
     		<version>${j2ee.version}</version>
     		<scope>provided</scope>
 		</dependency>
-<!--  		<dependency>
-			<groupId>org.jboss.spec</groupId>
-			<artifactId>jboss-javaee-6.0</artifactId>
-			<version>3.0.3.Final</version>
-			<type>pom</type>
-			<scope>provided</scope>
-		</dependency> -->
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-services-cdi</artifactId>
@@ -38,7 +31,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>workflow-manager-cdi</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

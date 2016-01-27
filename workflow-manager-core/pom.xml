@@ -6,8 +6,8 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>workflow-manager-core</artifactId>
-  <name>workflow-manager-core</name>
-  <description>workflow-manager-core</description>
+  <name>Workflow manager core</name>
+  <description>Workflow manager core</description>
   <dependencies>
   		<!-- jBPM -->
 		<dependency>
@@ -67,7 +67,7 @@
 		</dependency>
   </dependencies>
   <build>
-		<finalName>workflow-manager-core</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
