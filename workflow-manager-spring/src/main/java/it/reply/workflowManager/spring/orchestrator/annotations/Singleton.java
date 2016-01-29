@@ -8,12 +8,12 @@ import java.lang.annotation.Target;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
- * Qualifier for Spring DI {@link EntityManager}.
+ * Qualifier for Spring DI beans to indicate runtime strategy.
  *
  */
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER })
-public @interface PlatformPersistenceUnit {
+public @interface Singleton {
 
 }

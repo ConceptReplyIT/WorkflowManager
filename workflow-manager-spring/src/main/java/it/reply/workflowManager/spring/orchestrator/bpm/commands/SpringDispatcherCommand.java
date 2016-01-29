@@ -1,13 +1,11 @@
 package it.reply.workflowManager.spring.orchestrator.bpm.commands;
 
-import it.reply.workflowManager.orchestrator.bpm.OrchestratorContext;
 import it.reply.workflowManager.orchestrator.bpm.commands.DispatcherCommand;
 import it.reply.workflowManager.orchestrator.bpm.ejbcommands.IEJBCommand;
+import it.reply.workflowManager.spring.orchestrator.bpm.OrchestratorContextBean;
 import it.reply.workflowManager.utils.Constants;
 
 import org.apache.logging.log4j.Logger;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.util.Strings;
@@ -29,13 +27,6 @@ public class SpringDispatcherCommand implements DispatcherCommand {
 
   private static final Logger LOG = LogManager.getLogger(SpringDispatcherCommand.class);
 
-  private OrchestratorContext orchestratorContext;
-
-  @PostConstruct
-  public void init() {
-    orchestratorContext = null;
-  }
-
   @Override
   public ExecutionResults execute(CommandContext ctx) throws Exception {
 
@@ -47,8 +38,9 @@ public class SpringDispatcherCommand implements DispatcherCommand {
       return new ExecutionResults();
     }
 
-    IEJBCommand ejbCommand = orchestratorContext.getCommand(eJBCommandClass);
+    IEJBCommand ejbCommand = OrchestratorContextBean.getCommandBean(eJBCommandClass);
 
     return ejbCommand.execute(ctx);
   }
+
 }
