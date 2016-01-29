@@ -4,31 +4,17 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import javax.transaction.UserTransaction;
-
 import org.jbpm.executor.ExecutorServiceFactory;
 import org.kie.api.executor.ExecutorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.jta.JtaTransactionManager;
-
 import it.reply.workflowManager.utils.Constants;
 
 @Configuration
 @EnableTransactionManagement(proxyTargetClass = true)
 public class WorklfowPersistenceConfig {
-
-  @Autowired
-  private PlatformTransactionManager platformTransactionManager;
-
-  @Bean
-  public UserTransaction userTransaction() {
-    return ((JtaTransactionManager) platformTransactionManager).getUserTransaction();
-  }
 
   @Bean
   public static DataSource workflowDataSource() throws NamingException {
