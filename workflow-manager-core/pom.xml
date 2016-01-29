@@ -6,8 +6,6 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>workflow-manager-core</artifactId>
-  <name>Workflow manager core</name>
-  <description>Workflow manager core</description>
   <dependencies>
   		<!-- jBPM -->
 		<dependency>

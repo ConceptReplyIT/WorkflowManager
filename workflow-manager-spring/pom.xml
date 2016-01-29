@@ -7,8 +7,6 @@
 		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>workflow-manager-spring</artifactId>
-	<name>Workflow manager spring</name>
-	<description>Workflow manager spring extension</description>
 
 	<properties>
 		<springframework.version>4.2.4.RELEASE</springframework.version>

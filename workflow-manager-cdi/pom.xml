@@ -6,8 +6,6 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>workflow-manager-cdi</artifactId>
-  <name>Workflow manager cdi</name>
-  <description>Workflow manager cdi extension</description>
   	<dependencies>
 	  	<dependency>
 			<groupId>it.reply</groupId>

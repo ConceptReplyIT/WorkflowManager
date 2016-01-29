@@ -23,10 +23,12 @@ public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
   @Inject
   private ExecutorService executorService;
 
+  @Override
   protected Class<? extends DispatcherCommand> getDistpacherCommandClass() {
     return EJBDispatcherCommand.class;
   }
 
+  @Override
   protected ExecutorService getExecutorService() {
     return executorService;
   }
