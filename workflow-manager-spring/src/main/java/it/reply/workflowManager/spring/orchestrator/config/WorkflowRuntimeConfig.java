@@ -19,6 +19,7 @@ import it.reply.workflowManager.orchestrator.config.ConfigProducer;
 import it.reply.workflowManager.spring.orchestrator.annotations.PerProcessInstance;
 import it.reply.workflowManager.spring.orchestrator.annotations.PerRequest;
 import it.reply.workflowManager.spring.orchestrator.annotations.Singleton;
+import it.reply.workflowManager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
 
 @Configuration
 public class WorkflowRuntimeConfig {
@@ -30,7 +31,7 @@ public class WorkflowRuntimeConfig {
   private AutowireableRegisterableItemsFactory customRegisterableItemsFactory;
 
   @Autowired
-  @Qualifier("workflowEntityManagerFactory")
+  @WorkflowPersistenceUnit
   private EntityManagerFactory entityManagerFactory;
 
   @Autowired

@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import it.reply.workflowManager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
 import it.reply.workflowManager.utils.Constants;
 
 @Configuration
@@ -23,6 +25,7 @@ public class WorklfowPersistenceConfig {
   }
 
   @Bean
+  @WorkflowPersistenceUnit
   public LocalContainerEntityManagerFactoryBean workflowEntityManagerFactory()
       throws NamingException {
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
