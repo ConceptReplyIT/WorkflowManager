@@ -17,11 +17,13 @@ import javax.transaction.UserTransaction;
 
 import org.hibernate.StaleObjectStateException;
 import org.kie.api.runtime.process.WorkItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.util.Strings;
 
 /**
  * Abstract base class for command implementation.<br/>
@@ -33,7 +35,7 @@ import org.apache.logging.log4j.util.Strings;
  */
 public abstract class AbstractBaseCommand implements IEJBCommand {
 
-  private static final Logger LOG = LogManager.getLogger(AbstractBaseCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseCommand.class);
 
   protected CustomLogger logger;
 
@@ -204,7 +206,7 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
       optLock = true;
       verbose.append(" because of conflicting operations on entity ");
       String entityName = ((StaleObjectStateException) ex).getEntityName();
-      if (Strings.isNotBlank(entityName)) {
+      if (!Strings.isNullOrEmpty(entityName)) {
         verbose.append(entityName);
       } else {
         verbose.append("UNKNOWN");

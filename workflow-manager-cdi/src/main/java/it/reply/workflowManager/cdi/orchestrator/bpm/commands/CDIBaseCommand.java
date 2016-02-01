@@ -33,7 +33,7 @@ public abstract class CDIBaseCommand implements DispatcherCommand {
         throw new Exception();
     } catch (Exception e) {
       logger
-          .fatal("FATAL ERROR: Cannot have access to OrchestratorContext from " + this.getClass());
+          .error("FATAL ERROR: Cannot have access to OrchestratorContext from " + this.getClass());
       throw new Exception(
           "FATAL ERROR: Cannot have access to OrchestratorContext from " + this.getClass(), e);
     }

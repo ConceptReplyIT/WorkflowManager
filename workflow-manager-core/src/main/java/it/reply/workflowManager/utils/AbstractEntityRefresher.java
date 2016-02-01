@@ -10,15 +10,15 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceUnitUtil;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.hibernate.proxy.HibernateProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.primitives.Primitives;
 
 public abstract class AbstractEntityRefresher implements EntityRefresher {
 
-  protected static Logger LOG = LogManager.getLogger(AbstractEntityRefresher.class);
+  protected static Logger LOG = LoggerFactory.getLogger(AbstractEntityRefresher.class);
 
   protected abstract EntityManager getEntityManager();
 

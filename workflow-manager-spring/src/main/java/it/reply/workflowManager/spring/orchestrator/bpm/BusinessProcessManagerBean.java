@@ -1,8 +1,8 @@
 package it.reply.workflowManager.spring.orchestrator.bpm;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.kie.api.runtime.manager.RuntimeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import it.reply.workflowManager.spring.orchestrator.annotations.Singleton;
 @Service
 public class BusinessProcessManagerBean extends AbstractBusinessProcessManager {
 
-  public static Logger LOG = LogManager.getLogger(BusinessProcessManagerBean.class);
+  public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManagerBean.class);
 
   @Autowired
   @Singleton

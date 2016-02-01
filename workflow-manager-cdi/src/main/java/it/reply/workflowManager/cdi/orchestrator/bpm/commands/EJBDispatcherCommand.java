@@ -3,10 +3,12 @@ package it.reply.workflowManager.cdi.orchestrator.bpm.commands;
 import it.reply.workflowManager.orchestrator.bpm.ejbcommands.IEJBCommand;
 import it.reply.workflowManager.utils.Constants;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.util.Strings;
 import org.kie.api.runtime.process.WorkItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 
@@ -22,7 +24,7 @@ import org.kie.api.executor.ExecutionResults;
  */
 public class EJBDispatcherCommand extends CDIBaseCommand {
 
-  private static final Logger LOG = LogManager.getLogger(EJBDispatcherCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EJBDispatcherCommand.class);
 
   public EJBDispatcherCommand() throws Exception {
     super();
@@ -34,7 +36,7 @@ public class EJBDispatcherCommand extends CDIBaseCommand {
     WorkItem workItem = (WorkItem) ctx.getData(Constants.WORKITEM);
     String eJBCommandClass = (String) workItem.getParameter(Constants.EJB_COMMAND_CLASS);
 
-    if (Strings.isBlank(eJBCommandClass)) {
+    if (Strings.isNullOrEmpty(eJBCommandClass)) {
       LOG.warn("Executing dummy command because of empty {}", Constants.EJB_COMMAND_CLASS);
       return new ExecutionResults();
     }

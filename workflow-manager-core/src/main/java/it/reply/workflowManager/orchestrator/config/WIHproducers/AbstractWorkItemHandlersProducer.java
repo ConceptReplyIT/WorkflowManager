@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jbpm.executor.commands.LogCleanupCommand;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.executor.CommandContext;
@@ -20,6 +18,8 @@ import org.kie.api.executor.ExecutorService;
 import org.kie.api.executor.RequestInfo;
 import org.kie.api.executor.STATUS;
 import org.kie.internal.runtime.manager.WorkItemHandlerProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Producer of {@link WorkItemHandler}s to bind jBPM task to commands.
@@ -29,7 +29,7 @@ import org.kie.internal.runtime.manager.WorkItemHandlerProducer;
  */
 public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandlerProducer {
 
-  private static final Logger LOG = LogManager.getLogger(AbstractWorkItemHandlersProducer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractWorkItemHandlersProducer.class);
 
   protected abstract Class<? extends DispatcherCommand> getDistpacherCommandClass();
 

@@ -1,7 +1,5 @@
 package it.reply.workflowManager.spring.orchestrator.config.WIHproducers;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +8,8 @@ import it.reply.workflowManager.orchestrator.config.WIHproducers.AbstractWorkIte
 import it.reply.workflowManager.spring.orchestrator.bpm.commands.SpringDispatcherCommand;
 
 import org.kie.api.executor.ExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /***
  * Producer of{
@@ -22,7 +22,7 @@ import org.kie.api.executor.ExecutorService;
 @Component
 public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
-  private static final Logger LOG = LogManager.getLogger(WorkItemHandlersProducer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WorkItemHandlersProducer.class);
 
   @Autowired
   private ExecutorService executorService;

@@ -9,10 +9,10 @@ import it.reply.workflowManager.utils.Constants;
 import org.kie.api.runtime.process.WorkItem;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.runtime.process.WorkItemManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 /**
  * Asynchronous work item handler that utilizes power of <code>ExecutorService</code>. it expects
@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class SyncEJBWorkItemHandler implements WorkItemHandler {
 
-  private static final Logger logger = LogManager.getLogger(SyncEJBWorkItemHandler.class);
+  private static final Logger logger = LoggerFactory.getLogger(SyncEJBWorkItemHandler.class);
 
   private Class<? extends DispatcherCommand> distpacherCommandClass;
 

@@ -18,8 +18,8 @@ import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 import org.kie.api.executor.ExecutorService;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Asynchronous work item handler that utilizes power of <code>ExecutorService</code>. it expects
@@ -42,7 +42,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements WorkItemHandler {
 
-  private static final Logger logger = LogManager.getLogger(AsyncEJBWorkItemHandler.class);
+  private static final Logger logger = LoggerFactory.getLogger(AsyncEJBWorkItemHandler.class);
 
   // private String commandClass;
   private ExecutorService executorService;

@@ -5,12 +5,13 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.internal.runtime.manager.cdi.qualifier.PerProcessInstance;
 import org.kie.internal.runtime.manager.cdi.qualifier.PerRequest;
 import org.kie.internal.runtime.manager.cdi.qualifier.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.reply.workflowManager.orchestrator.bpm.AbstractBusinessProcessManager;
 
 /**
@@ -24,7 +25,7 @@ import it.reply.workflowManager.orchestrator.bpm.AbstractBusinessProcessManager;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class BusinessProcessManagerBean extends AbstractBusinessProcessManager {
 
-  public static Logger LOG = LogManager.getLogger(BusinessProcessManagerBean.class);
+  public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManagerBean.class);
 
   @Inject
   @Singleton

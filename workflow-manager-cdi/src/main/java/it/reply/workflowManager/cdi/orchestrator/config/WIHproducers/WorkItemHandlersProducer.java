@@ -2,9 +2,9 @@ package it.reply.workflowManager.cdi.orchestrator.config.WIHproducers;
 
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.kie.api.runtime.process.WorkItemHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.kie.api.executor.ExecutorService;
 import it.reply.workflowManager.cdi.orchestrator.bpm.commands.EJBDispatcherCommand;
 import it.reply.workflowManager.orchestrator.bpm.commands.DispatcherCommand;
@@ -18,7 +18,7 @@ import it.reply.workflowManager.orchestrator.config.WIHproducers.AbstractWorkIte
  */
 public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
-  private static final Logger LOG = LogManager.getLogger(WorkItemHandlersProducer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WorkItemHandlersProducer.class);
 
   @Inject
   private ExecutorService executorService;

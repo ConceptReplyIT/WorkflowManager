@@ -4,8 +4,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.javatuples.Pair;
 import org.jbpm.process.audit.AbstractAuditLogger;
 import org.jbpm.process.audit.AuditLoggerFactory;
@@ -21,6 +19,8 @@ import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.internal.runtime.manager.context.EmptyContext;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is the manager of Business Processes execution. It can be used to launch a new process
@@ -30,7 +30,7 @@ import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
  */
 public abstract class AbstractBusinessProcessManager implements BusinessProcessManager {
 
-  public static Logger LOG = LogManager.getLogger(BusinessProcessManager.class);
+  public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManager.class);
 
   @PostConstruct
   public void configure() {
