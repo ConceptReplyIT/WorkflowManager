@@ -46,12 +46,8 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
     return isPrimitiveOrWrapper(o.getClass());
   }
 
-  public enum Operation {
-    NOTHING, FIND, MERGE, PERSIST, MERGE_AND_PERSIST
-  }
-
   private Object manageEntities(Object o, Map<Object, Object> parsedObjects, Set<Object> entities,
-      Operation operation, Class<? extends Object>[] classes) {
+      ManagementAction managementAction, Class<? extends Object>[] classes) {
     if (o == null) {
       return o;
     }
@@ -77,13 +73,7 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
       }
       Object oldEntity = o;
       Object newEntity = null;
-      Class<?> entityClass = null;
-      if (oldEntity instanceof HibernateProxy) {
-        entityClass = ((HibernateProxy) oldEntity).getHibernateLazyInitializer()
-            .getPersistentClass();
-      } else {
-        entityClass = oldEntity.getClass();
-      }
+      Class<?> entityClass = getEntityClass(oldEntity);
       boolean manage = true;
       if (classes != null && classes.length != 0) {
         manage = false;
@@ -95,36 +85,7 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
         }
       }
       if (manage) {
-        Object id = getPersistenceUnitUtil().getIdentifier(oldEntity);
-        switch (operation) {
-          case FIND:
-            if (id != null) {
-              newEntity = getEntityManager().find(entityClass, id);
-            }
-            break;
-          case MERGE:
-            if (id != null) {
-              newEntity = getEntityManager().merge(oldEntity);
-            }
-            break;
-          case PERSIST:
-            if (id == null) {
-              getEntityManager().persist(oldEntity);
-              newEntity = oldEntity;
-            }
-            break;
-          case MERGE_AND_PERSIST:
-            if (id != null) {
-              newEntity = getEntityManager().merge(oldEntity);
-            } else {
-              getEntityManager().persist(oldEntity);
-              newEntity = oldEntity;
-            }
-            break;
-          case NOTHING:
-          default:
-            break;
-        }
+        newEntity = managementAction.manage(oldEntity);
       }
       if (newEntity != null) {
         parsedObjects.put(oldEntity, newEntity);
@@ -143,8 +104,8 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
         return o;
       }
       for (int i = 0; i < ((Object[]) o).length; ++i) {
-        ((Object[]) o)[i] = manageEntities(((Object[]) o)[i], parsedObjects, entities, operation,
-            classes);
+        ((Object[]) o)[i] = manageEntities(((Object[]) o)[i], parsedObjects, entities,
+            managementAction, classes);
       }
       return o;
     }
@@ -157,7 +118,8 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
             field.setAccessible(true);
           }
           try {
-            field.set(o, manageEntities(field.get(o), parsedObjects, entities, operation, classes));
+            field.set(o,
+                manageEntities(field.get(o), parsedObjects, entities, managementAction, classes));
           } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new RuntimeException(
                 "Error trying to understand if " + o.toString() + " is an entity.", e);
@@ -168,30 +130,98 @@ public abstract class AbstractEntityRefresher implements EntityRefresher {
     return o;
   }
 
+  private Class<?> getEntityClass(Object entity) {
+    Class<?> entityClass = null;
+    if (entity instanceof HibernateProxy) {
+      entityClass = ((HibernateProxy) entity).getHibernateLazyInitializer().getPersistentClass();
+    } else {
+      entityClass = entity.getClass();
+    }
+    return entityClass;
+  }
+
+  private interface ManagementAction {
+    public Object manage(Object oldEntity);
+  }
+
   @Override
   public Object findEntities(Object object, Class<? extends Object>[] classes) {
-    return manageEntities(object, null, null, Operation.FIND, classes);
+    ManagementAction find = new ManagementAction() {
+      @Override
+      public Object manage(Object oldEntity) {
+        Object id = getPersistenceUnitUtil().getIdentifier(oldEntity);
+        Object newEntity = null;
+        if (id != null) {
+          newEntity = getEntityManager().find(getEntityClass(oldEntity), id);
+        }
+        return newEntity;
+      }
+    };
+    return manageEntities(object, null, null, find, classes);
   }
 
   @Override
   public Object mergeEntities(Object object, Class<? extends Object>[] classes) {
-    return manageEntities(object, null, null, Operation.MERGE, classes);
+    ManagementAction merge = new ManagementAction() {
+      @Override
+      public Object manage(Object oldEntity) {
+        Object id = getPersistenceUnitUtil().getIdentifier(oldEntity);
+        Object newEntity = null;
+        if (id != null) {
+          newEntity = getEntityManager().merge(oldEntity);
+        }
+        return newEntity;
+      }
+    };
+    return manageEntities(object, null, null, merge, classes);
   }
 
   @Override
   public Object persistEntities(Object object, Class<? extends Object>[] classes) {
-    return manageEntities(object, null, null, Operation.PERSIST, classes);
+    ManagementAction persist = new ManagementAction() {
+      @Override
+      public Object manage(Object oldEntity) {
+        Object id = getPersistenceUnitUtil().getIdentifier(oldEntity);
+        Object newEntity = null;
+        if (id == null) {
+          getEntityManager().persist(oldEntity);
+          newEntity = oldEntity;
+        }
+        return newEntity;
+      }
+    };
+    return manageEntities(object, null, null, persist, classes);
   }
 
   @Override
   public Object mergeAndPersistEntities(Object object, Class<? extends Object>[] classes) {
-    return manageEntities(object, null, null, Operation.MERGE_AND_PERSIST, classes);
+    ManagementAction mergeAndPersist = new ManagementAction() {
+      @Override
+      public Object manage(Object oldEntity) {
+        Object id = getPersistenceUnitUtil().getIdentifier(oldEntity);
+        Object newEntity = null;
+        if (id != null) {
+          newEntity = getEntityManager().merge(oldEntity);
+        } else {
+          getEntityManager().persist(oldEntity);
+          newEntity = oldEntity;
+        }
+        return newEntity;
+      }
+    };
+    return manageEntities(object, null, null, mergeAndPersist, classes);
   }
 
   @Override
   public Set<Object> getEntities(final Object object) {
+    ManagementAction doNothing = new ManagementAction() {
+      @Override
+      public Object manage(Object oldEntity) {
+        return null;
+      }
+    };
     Set<Object> entities = new HashSet<Object>();
-    manageEntities(object, null, entities, Operation.NOTHING, null);
+    manageEntities(object, null, entities, doNothing, null);
     return entities;
   }
 
