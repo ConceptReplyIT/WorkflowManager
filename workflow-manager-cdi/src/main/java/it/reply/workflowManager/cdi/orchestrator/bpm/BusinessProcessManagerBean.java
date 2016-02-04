@@ -28,30 +28,22 @@ public class BusinessProcessManagerBean extends AbstractBusinessProcessManager {
   public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManagerBean.class);
 
   @Inject
-  @Singleton
-  private RuntimeManager singletonRuntimeManager;
+  @Override
+  public void setSingletonRuntimeManager(@Singleton RuntimeManager singletonRuntimeManager) {
+    super.setSingletonRuntimeManager(singletonRuntimeManager);
+  }
 
   @Inject
-  @PerProcessInstance
-  private RuntimeManager perProcessInstanceRuntimeManager;
+  @Override
+  public void setPerProcessInstanceRuntimeManager(
+      @PerProcessInstance RuntimeManager perProcessInstanceRuntimeManager) {
+    super.setPerProcessInstanceRuntimeManager(perProcessInstanceRuntimeManager);
+  }
 
   // @Inject
-  @PerRequest
-  private RuntimeManager perRequestRuntimeManager;
-
   @Override
-  public RuntimeManager getSingletonRuntimeManager() {
-    return singletonRuntimeManager;
-  }
-
-  @Override
-  public RuntimeManager getPerProcessInstanceRuntimeManager() {
-    return perProcessInstanceRuntimeManager;
-  }
-
-  @Override
-  public RuntimeManager getPerRequestRuntimeManager() {
-    return perRequestRuntimeManager;
+  public void setPerRequestRuntimeManager(@PerRequest RuntimeManager perRequestRuntimeManager) {
+    super.setPerRequestRuntimeManager(perRequestRuntimeManager);
   }
 
 }

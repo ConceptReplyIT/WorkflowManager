@@ -1,8 +1,11 @@
 package it.reply.workflowManager.spring.orchestrator.config;
 
-import java.util.HashMap;
-
-import javax.persistence.EntityManagerFactory;
+import it.reply.workflowManager.orchestrator.config.ConfigProducer;
+import it.reply.workflowManager.spring.orchestrator.annotations.PerProcessInstance;
+import it.reply.workflowManager.spring.orchestrator.annotations.PerRequest;
+import it.reply.workflowManager.spring.orchestrator.annotations.Singleton;
+import it.reply.workflowManager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
+import it.reply.workflowManager.utils.Constants;
 import org.jbpm.runtime.manager.impl.SimpleRuntimeEnvironment;
 import org.kie.api.executor.ExecutorService;
 import org.kie.api.runtime.manager.RuntimeEnvironment;
@@ -10,16 +13,13 @@ import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.spring.factorybeans.RuntimeEnvironmentFactoryBean;
 import org.kie.spring.factorybeans.RuntimeManagerFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
-import it.reply.workflowManager.utils.Constants;
-import it.reply.workflowManager.orchestrator.config.ConfigProducer;
-import it.reply.workflowManager.spring.orchestrator.annotations.PerProcessInstance;
-import it.reply.workflowManager.spring.orchestrator.annotations.PerRequest;
-import it.reply.workflowManager.spring.orchestrator.annotations.Singleton;
-import it.reply.workflowManager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
+
+import java.util.HashMap;
+
+import javax.persistence.EntityManagerFactory;
 
 @Configuration
 public class WorkflowRuntimeConfig {
@@ -40,7 +40,7 @@ public class WorkflowRuntimeConfig {
   @Autowired
   private ExecutorService executorService;
 
-  @Bean
+  @Bean(destroyMethod = "close")
   public RuntimeEnvironment runtimeEnvironment() throws Exception {
     RuntimeEnvironmentFactoryBean refb = new RuntimeEnvironmentFactoryBean();
     refb.setType(RuntimeEnvironmentFactoryBean.TYPE_DEFAULT);
@@ -55,7 +55,7 @@ public class WorkflowRuntimeConfig {
     refb.getEnvironmentEntries().put(Constants.EXECUTOR_SERVICE, executorService);
     SimpleRuntimeEnvironment env = (SimpleRuntimeEnvironment) refb.getObject();
     env.setUsePersistence(true);
-    for (org.kie.api.io.Resource resource : configProducer.getResources()) {
+    for (org.kie.api.io.Resource resource : configProducer.getJbpmResources()) {
       env.addAsset(resource, resource.getResourceType());
     }
     return env;
@@ -68,7 +68,8 @@ public class WorkflowRuntimeConfig {
     rmfb.setIdentifier("default-singleton");
     rmfb.setRuntimeEnvironment(runtimeEnvironment());
     rmfb.setType("SINGLETON");
-    return (RuntimeManager) rmfb.getObject();
+    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
+    return rm;
   }
 
   @Bean(destroyMethod = "close")
@@ -78,7 +79,8 @@ public class WorkflowRuntimeConfig {
     rmfb.setIdentifier("default-per-process");
     rmfb.setRuntimeEnvironment(runtimeEnvironment());
     rmfb.setType("PER_PROCESS_INSTANCE");
-    return (RuntimeManager) rmfb.getObject();
+    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
+    return rm;
   }
 
   @Bean(destroyMethod = "close")
@@ -88,6 +90,7 @@ public class WorkflowRuntimeConfig {
     rmfb.setIdentifier("default-per-request");
     rmfb.setRuntimeEnvironment(runtimeEnvironment());
     rmfb.setType("PER_REQUEST");
-    return (RuntimeManager) rmfb.getObject();
+    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
+    return rm;
   }
 }

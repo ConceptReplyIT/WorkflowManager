@@ -1,10 +1,6 @@
 package it.reply.workflowManager.orchestrator.bpm;
 
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
-import org.javatuples.Pair;
+import it.reply.workflowManager.exceptions.WorkflowException;
 import org.jbpm.process.audit.AbstractAuditLogger;
 import org.jbpm.process.audit.AuditLoggerFactory;
 import org.kie.api.event.process.ProcessCompletedEvent;
@@ -17,10 +13,14 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.ProcessInstance;
+import org.kie.internal.runtime.manager.SessionNotFoundException;
 import org.kie.internal.runtime.manager.context.EmptyContext;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import javax.annotation.PostConstruct;
 
 /**
  * This class is the manager of Business Processes execution. It can be used to launch a new process
@@ -32,64 +32,125 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
 
   public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManager.class);
 
+  private RuntimeManager singletonRuntimeManager;
+
+  private RuntimeManager perProcessInstanceRuntimeManager;
+
+  private RuntimeManager perRequestRuntimeManager;
+
+  public void setSingletonRuntimeManager(RuntimeManager singletonRuntimeManager) {
+    this.singletonRuntimeManager = singletonRuntimeManager;
+  }
+
+  public void setPerProcessInstanceRuntimeManager(RuntimeManager perProcessInstanceRuntimeManager) {
+    this.perProcessInstanceRuntimeManager = perProcessInstanceRuntimeManager;
+  }
+
+  public void setPerRequestRuntimeManager(RuntimeManager perRequestRuntimeManager) {
+    this.perRequestRuntimeManager = perRequestRuntimeManager;
+  }
+
   @PostConstruct
-  public void configure() {
-    // use toString to make sure CDI initializes the bean
+  private void configure() {
+    // use toString to make sure DI initializes the bean
     // this makes sure that RuntimeManager is started asap,
     // otherwise after server restart complete task won't move process
     // forward
-    if (getSingletonRuntimeManager() != null) {
-      RuntimeEngine runtime = getSingletonRuntimeManager()
+    if (singletonRuntimeManager != null) {
+      RuntimeEngine runtime = singletonRuntimeManager
           .getRuntimeEngine(ProcessInstanceIdContext.get());
       registerjBPMAuditing(runtime.getKieSession());
     }
-    if (getPerProcessInstanceRuntimeManager() != null) {
-      getPerProcessInstanceRuntimeManager().toString();
+    if (perProcessInstanceRuntimeManager != null) {
+      perProcessInstanceRuntimeManager.toString();
     }
-    if (getPerRequestRuntimeManager() != null) {
-      getPerRequestRuntimeManager().toString();
+    if (perRequestRuntimeManager != null) {
+      perRequestRuntimeManager.toString();
     }
 
   }
 
   @Override
-  public Pair<ProcessInstance, KieSession> startProcess(String procName, Map<String, Object> params,
-      RUNTIME_STRATEGY runtimeStrat) throws Exception {
+  public ProcessInstance startProcess(String procName, Map<String, Object> params,
+      RUNTIME_STRATEGY runtimeStrat) throws WorkflowException {
+    try {
+      RuntimeEngine runtime = null;
+      RuntimeManager runtimeManager = null;
+      KieSession ksession = null;
+      switch (runtimeStrat) {
+        case PER_PROCESS_INSTANCE:
+          runtimeManager = perProcessInstanceRuntimeManager;
+          runtime = runtimeManager.getRuntimeEngine(ProcessInstanceIdContext.get());
+          ksession = runtime.getKieSession();
+          registerjBPMAuditing(ksession);
+          break;
+        case PER_REQUEST:
+          throw new UnsupportedOperationException(
+              "Only singleton & per request RM supported currently.");
+          // runtimeManager = perRequestRuntimeManager;
+          // runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
+          // ksession = runtime.getKieSession();
+          // registerjBPMAuditing(ksession);
+          // break;
+        case SINGLETON:
+          runtimeManager = singletonRuntimeManager;
+          runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
+          ksession = runtime.getKieSession();
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unknown runtime strategy: " + runtimeStrat.toString());
+      }
 
-    RuntimeEngine runtime = null;
-    RuntimeManager runtimeManager = null;
-    KieSession ksession = null;
+      ProcessInstance processInstance = null;
+      processInstance = ksession.startProcess(procName, params);
 
-    switch (runtimeStrat) {
-      case PER_PROCESS_INSTANCE:
-        runtimeManager = getPerProcessInstanceRuntimeManager();
-        runtime = runtimeManager.getRuntimeEngine(ProcessInstanceIdContext.get());
-        ksession = runtime.getKieSession();
-        registerjBPMAuditing(ksession);
-        break;
-      case PER_REQUEST:
-        throw new UnsupportedOperationException(
-            "Only singleton & per request RM supported currently.");
-        // runtimeManager = perRequestRuntimeManager;
-        // runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
-        // ksession = runtime.getKieSession();
-        // registerjBPMAuditing(ksession);
-        // break;
-      case SINGLETON:
-        runtimeManager = getSingletonRuntimeManager();
-        runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
-        ksession = runtime.getKieSession();
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown runtime strategy: " + runtimeStrat.toString());
+      return processInstance;
+    } catch (Throwable e) {
+      throw new WorkflowException(e);
+    }
+  }
+
+  @Override
+  public void abortProcess(long processInstanceId, RUNTIME_STRATEGY runtimeStrat)
+      throws WorkflowException {
+    try {
+      RuntimeEngine runtime = null;
+      RuntimeManager runtimeManager = null;
+      KieSession ksession = null;
+      switch (runtimeStrat) {
+        case PER_REQUEST:
+        case PER_PROCESS_INSTANCE:
+          runtimeManager = perProcessInstanceRuntimeManager;
+          runtime = runtimeManager
+              .getRuntimeEngine(ProcessInstanceIdContext.get(processInstanceId));
+          try {
+            ksession = runtime.getKieSession();
+          } catch (SessionNotFoundException snfe) {
+            LOG.warn("Error aborting process instance {}.", processInstanceId);
+            return;
+          }
+          break;
+        case SINGLETON:
+          runtimeManager = singletonRuntimeManager;
+          runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
+          ksession = runtime.getKieSession();
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unknown runtime strategy: " + runtimeStrat.toString());
+      }
+      try {
+        ksession.abortProcessInstance(processInstanceId);
+      } catch (IllegalArgumentException e) {
+        LOG.warn("Error aborting process instance {}.", processInstanceId);
+        return;
+      }
+
+    } catch (Throwable e) {
+      throw new WorkflowException(e);
     }
 
-    ProcessInstance processInstance = ksession.createProcessInstance(procName, params);
-
-    // Start process
-    processInstance = ksession.startProcessInstance(processInstance.getId());
-
-    return new Pair<ProcessInstance, KieSession>(processInstance, ksession);
   }
 
   private void registerjBPMAuditing(KieSession ksession) {

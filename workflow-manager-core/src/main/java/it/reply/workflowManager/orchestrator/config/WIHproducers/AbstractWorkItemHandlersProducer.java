@@ -33,10 +33,11 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
 
   protected abstract Class<? extends DispatcherCommand> getDistpacherCommandClass();
 
-  protected abstract ExecutorService getExecutorService();
+  private ExecutorService executorService;
 
-  // @Inject
-  // protected EntityManager entityManager;
+  protected void setExecutorService(ExecutorService executorService) {
+    this.executorService = executorService;
+  }
 
   // Schedule delay of the first run of the LogCleanupCommand (in seconds)
   private static int firstRunDelay = 120;
@@ -53,17 +54,16 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
       final Map<String, Object> params) {
     final Map<String, WorkItemHandler> workItemHandlers = new HashMap<String, WorkItemHandler>();
 
-    // System.setProperty("org.kie.executor.pool.size", "10");
-    getExecutorService().setThreadPoolSize(1);
-    getExecutorService().setInterval(30);
+    executorService.setThreadPoolSize(1);
+    executorService.setInterval(30);
 
-    if (!getExecutorService().isActive()) {
+    if (!executorService.isActive()) {
       LOG.info("Initializing ExecutorService.");
-      scheduleDBCleanUp(getExecutorService());
-      getExecutorService().init();
+      scheduleDBCleanUp(executorService);
+      executorService.init();
     }
 
-    AsyncEJBWorkItemHandler EJBasyncWIH = new AsyncEJBWorkItemHandler(getExecutorService(),
+    AsyncEJBWorkItemHandler EJBasyncWIH = new AsyncEJBWorkItemHandler(executorService,
         getDistpacherCommandClass());
 
     workItemHandlers.put("asyncEJB", EJBasyncWIH);
@@ -76,7 +76,7 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
   }
 
   /**
-   * Cleans the Jbpm audit tables
+   * Cleans the Jbpm audit tables.
    * 
    * @param executorService
    *          must not be initialized in orded to cancel pending requests

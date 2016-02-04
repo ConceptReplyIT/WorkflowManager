@@ -11,10 +11,8 @@ import org.kie.api.executor.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/***
- * Producer of{
- * 
- * @link WorkItemHandler}s to bind jBPM task to commands.
+/**
+ * Producer of{@link WorkItemHandler}s to bind jBPM task to commands.
  *
  * @author l.biava
  *
@@ -24,17 +22,15 @@ public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
   private static final Logger LOG = LoggerFactory.getLogger(WorkItemHandlersProducer.class);
 
-  @Autowired
-  private ExecutorService executorService;
-
   @Override
   protected Class<? extends DispatcherCommand> getDistpacherCommandClass() {
     return SpringDispatcherCommand.class;
   }
 
+  @Autowired
   @Override
-  protected ExecutorService getExecutorService() {
-    return executorService;
+  protected void setExecutorService(ExecutorService executorService) {
+    super.setExecutorService(executorService);
   }
 
 }

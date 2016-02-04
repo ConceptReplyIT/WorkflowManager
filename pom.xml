@@ -79,4 +79,19 @@
 		<module>workflow-manager-cdi</module>
 		<module>workflow-manager-spring</module>
 	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.8</version>
+				<configuration>
+					<licenseName>apache_2</licenseName>
+					<projectName>${project.name}</projectName>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  
 </project>
