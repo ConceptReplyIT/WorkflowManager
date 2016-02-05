@@ -6,6 +6,9 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>workflow-manager-core</artifactId>
+  <properties>
+  	<btm.version>2.1.4</btm.version>
+  </properties>
   <dependencies>
   		<!-- jBPM -->
 		<dependency>
@@ -63,6 +66,16 @@
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-executor</artifactId>
 		</dependency>
+
+		<!-- TEST -->
+
+		<dependency>
+			<groupId>org.codehaus.btm</groupId>
+			<artifactId>btm</artifactId>
+			<version>${btm.version}</version>
+			<scope>test</scope>
+		</dependency>
+
   </dependencies>
   <build>
 		<finalName>${project.artifactId}</finalName>
