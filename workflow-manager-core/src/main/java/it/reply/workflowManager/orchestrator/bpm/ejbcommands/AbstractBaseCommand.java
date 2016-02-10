@@ -264,9 +264,18 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
    * @param exResults
    *          {@link ExecutionResults} of the command for creating the result output variable.
    */
-  protected <ResultType> void resultOccurred(ResultType result, ExecutionResults exResults) {
+  protected <ResultType> ExecutionResults resultOccurred(ResultType result,
+      ExecutionResults exResults) {
     exResults.setData(Constants.RESULT_STATUS, "OK");
     exResults.setData(Constants.OK_RESULT, result);
+    return exResults;
+  }
+
+  protected <ResultType> ExecutionResults resultOccurred(ResultType result) {
+    ExecutionResults exResults = new ExecutionResults();
+    exResults.setData(Constants.RESULT_STATUS, "OK");
+    exResults.setData(Constants.OK_RESULT, result);
+    return exResults;
   }
 
   protected it.reply.workflowManager.dsl.Error generateError(ErrorCode errorCode) {
