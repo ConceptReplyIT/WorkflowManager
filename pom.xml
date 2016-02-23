@@ -1,9 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>it.reply</groupId>
+		<artifactId>reply-parent-pom</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
 	<groupId>it.reply</groupId>
 	<artifactId>workflow-manager</artifactId>
 	<version>0.0.2-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>workflow-manager-core</module>
+		<module>workflow-manager-cdi</module>
+		<module>workflow-manager-spring</module>
+	</modules>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -13,24 +28,29 @@
 	</licenses>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.7</java.version>
-		<maven.compiler.target>1.7</maven.compiler.target>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.version>3.3</maven.compiler.version>	
+		<!-- WARNING: Keep in sync with <parent>'s <version> ! -->
+		<version.it.reply>1.0.0-SNAPSHOT</version.it.reply>
+
 		<version.surefire.plugin>2.19.1</version.surefire.plugin>
 		<slf4j.version>1.7.14</slf4j.version>
 		<jbpm.version>6.3.0.Final</jbpm.version>
-		<javatuples.version>1.2</javatuples.version>
+
 		<j2ee.version>6.0</j2ee.version>
 		<commons-lang3.version>3.4</commons-lang3.version>
-		<guava.version>19.0</guava.version>
 		<checkstyle-plugin.version>2.17</checkstyle-plugin.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- Reply BOM -->
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>reply-bom</artifactId>
+				<version>${version.it.reply}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+
 			<!-- jBPM -->
 			<dependency>
 				<groupId>org.jbpm</groupId>
@@ -43,45 +63,46 @@
 	</dependencyManagement>
 
 	<dependencies>
-		
+
 		<!-- Apache Commons Lang -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
-  			<artifactId>commons-lang3</artifactId>
-  			<version>${commons-lang3.version}</version>
-  		</dependency>
-		
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
 		<!-- SLF4J -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
 		</dependency>
-		
+
 		<!-- Javatuples -->
 		<dependency>
-        	<groupId>org.javatuples</groupId>
-        	<artifactId>javatuples</artifactId>
-        	<version>${javatuples.version}</version>
-    	</dependency>
-		
+			<groupId>org.javatuples</groupId>
+			<artifactId>javatuples</artifactId>
+		</dependency>
+
 		<!-- Guava -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
 		</dependency>
 	</dependencies>
-	
-	<packaging>pom</packaging>
-	<modules>
-		<module>workflow-manager-core</module>
-		<module>workflow-manager-cdi</module>
-		<module>workflow-manager-spring</module>
-	</modules>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${checkstyle-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
+			<!-- To automatically put license header in source files (Currently not 
+				working !) -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -93,5 +114,5 @@
 			</plugin>
 		</plugins>
 	</build>
-  
+
 </project>
