@@ -2,6 +2,7 @@ package it.reply.workflowManager.cdi.orchestrator.config.WIHproducers;
 
 import it.reply.workflowManager.cdi.orchestrator.bpm.commands.EJBDispatcherCommand;
 import it.reply.workflowManager.orchestrator.bpm.commands.DispatcherCommand;
+import it.reply.workflowManager.orchestrator.config.ConfigProducer;
 import it.reply.workflowManager.orchestrator.config.WIHproducers.AbstractWorkItemHandlersProducer;
 import org.kie.api.executor.ExecutorService;
 import org.kie.api.runtime.process.WorkItemHandler;
@@ -27,8 +28,9 @@ public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
   @Inject
   @Override
-  protected void setExecutorService(ExecutorService executorService) {
-    super.setExecutorService(executorService);
+  protected void setExecutorService(ExecutorService executorService,
+      ConfigProducer configProducer) {
+    super.setExecutorService(executorService, configProducer);
   }
 
 }

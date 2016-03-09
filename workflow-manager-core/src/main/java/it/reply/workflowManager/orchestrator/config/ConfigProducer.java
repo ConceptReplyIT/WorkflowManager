@@ -15,6 +15,10 @@ public interface ConfigProducer {
 
   public List<WorkflowResource> getWorkflowResources();
 
+  public int getExecutorServiceThreadPoolSize();
+
+  public int getExecutorServiceInterval();
+
   public static class WorkflowResource {
     private static XmlBPMNProcessDumper processReader = XmlBPMNProcessDumper.INSTANCE;
 

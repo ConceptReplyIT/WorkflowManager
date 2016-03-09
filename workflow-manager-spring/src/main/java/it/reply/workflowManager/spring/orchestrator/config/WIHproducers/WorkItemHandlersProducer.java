@@ -1,6 +1,7 @@
 package it.reply.workflowManager.spring.orchestrator.config.WIHproducers;
 
 import it.reply.workflowManager.orchestrator.bpm.commands.DispatcherCommand;
+import it.reply.workflowManager.orchestrator.config.ConfigProducer;
 import it.reply.workflowManager.orchestrator.config.WIHproducers.AbstractWorkItemHandlersProducer;
 import it.reply.workflowManager.spring.orchestrator.bpm.commands.SpringDispatcherCommand;
 
@@ -30,8 +31,9 @@ public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
   @Autowired
   @Override
-  protected void setExecutorService(ExecutorService executorService) {
-    super.setExecutorService(executorService);
+  protected void setExecutorService(ExecutorService executorService,
+      ConfigProducer configProducer) {
+    super.setExecutorService(executorService, configProducer);
   }
 
 }

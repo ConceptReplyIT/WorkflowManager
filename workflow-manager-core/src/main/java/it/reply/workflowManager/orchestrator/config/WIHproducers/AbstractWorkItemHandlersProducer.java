@@ -3,6 +3,7 @@ package it.reply.workflowManager.orchestrator.config.WIHproducers;
 import it.reply.workflowManager.orchestrator.bpm.WIHs.AsyncEJBWorkItemHandler;
 import it.reply.workflowManager.orchestrator.bpm.WIHs.SyncEJBWorkItemHandler;
 import it.reply.workflowManager.orchestrator.bpm.commands.DispatcherCommand;
+import it.reply.workflowManager.orchestrator.config.ConfigProducer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -35,7 +36,10 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
 
   private ExecutorService executorService;
 
-  protected void setExecutorService(ExecutorService executorService) {
+  protected void setExecutorService(ExecutorService executorService,
+      ConfigProducer configProducer) {
+    executorService.setThreadPoolSize(configProducer.getExecutorServiceThreadPoolSize());
+    executorService.setInterval(configProducer.getExecutorServiceInterval());
     this.executorService = executorService;
   }
 
@@ -53,9 +57,6 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
   public Map<String, WorkItemHandler> getWorkItemHandlers(final String identifier,
       final Map<String, Object> params) {
     final Map<String, WorkItemHandler> workItemHandlers = new HashMap<String, WorkItemHandler>();
-
-    executorService.setThreadPoolSize(1);
-    executorService.setInterval(30);
 
     if (!executorService.isActive()) {
       LOG.info("Initializing ExecutorService.");
