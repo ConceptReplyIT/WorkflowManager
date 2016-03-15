@@ -89,6 +89,15 @@
 		</dependency>
 	</dependencies>
 
+	<distributionManagement>
+		<!-- Publish snapshots here -->
+		<snapshotRepository>
+			<id>concept-reply-nexus-repository</id>
+			<name>Concept Reply Snaphots Repository</name>
+			<url>http://cnc01nexus01.replycloud.prv/nexus/content/repositories/public-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 	<build>
 		<pluginManagement>
 			<plugins>
