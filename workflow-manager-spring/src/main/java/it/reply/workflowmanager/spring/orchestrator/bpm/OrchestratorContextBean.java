@@ -40,9 +40,13 @@ public class OrchestratorContextBean extends AbstractOrchestratorContext
   }
 
   public static IEJBCommand getCommandBean(Class<? extends IEJBCommand> commandClass) {
+    return getBean(commandClass);
+  }
+
+  public static <T> T getBean(Class<T> beanClass) {
     LOCK.readLock().lock();
     try {
-      return OrchestratorContextBean.APPLICATION_CONTEXT.getBean(commandClass);
+      return OrchestratorContextBean.APPLICATION_CONTEXT.getBean(beanClass);
     } finally {
       LOCK.readLock().unlock();
     }
