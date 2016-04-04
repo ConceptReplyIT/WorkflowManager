@@ -66,6 +66,17 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
     return (WorkItem) ctx.getData(Constants.WORKITEM);
   }
 
+  @SuppressWarnings("unchecked")
+  public static <T> T getParameter(CommandContext ctx, String parameterName) {
+    WorkItem wi = getWorkItem(ctx);
+    Object parameter = wi.getParameter(parameterName);
+    try {
+      return (T) parameter;
+    } catch (ClassCastException ex) {
+      return null;
+    }
+  }
+
   public static Long getProcessInstanceId(CommandContext ctx) {
     return EJBWorkItemHelper.getProcessInstanceId(ctx);
   }
