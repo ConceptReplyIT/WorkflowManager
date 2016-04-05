@@ -73,6 +73,7 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
     try {
       return (T) parameter;
     } catch (ClassCastException ex) {
+      LOG.error(String.format("Error retrieving parameter %s in WorkItem %s", parameterName, wi.getName()), ex);
       return null;
     }
   }
