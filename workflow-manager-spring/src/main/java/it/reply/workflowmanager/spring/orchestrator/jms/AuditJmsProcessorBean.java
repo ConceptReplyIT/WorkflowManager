@@ -1,11 +1,14 @@
 package it.reply.workflowmanager.spring.orchestrator.jms;
 
 import it.reply.workflowmanager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
+
 import org.jbpm.process.audit.jms.AsyncAuditLogReceiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.jms.Message;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -14,6 +17,7 @@ import javax.persistence.EntityManagerFactory;
  * for JMS environments - like MDB.
  */
 @Component
+@Transactional
 public class AuditJmsProcessorBean extends AsyncAuditLogReceiver {
 
   @Autowired
@@ -27,5 +31,11 @@ public class AuditJmsProcessorBean extends AsyncAuditLogReceiver {
   @PostConstruct
   public void configure() {
     setEntityManagerFactory(entityManagerFactory);
+  }
+
+  @Override
+  @Transactional
+  public void onMessage(Message message) {
+    super.onMessage(message);
   }
 }
