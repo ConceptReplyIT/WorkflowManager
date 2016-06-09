@@ -1,8 +1,7 @@
 package it.reply.workflowmanager.orchestrator.bpm;
 
 import it.reply.workflowmanager.exceptions.WorkflowException;
-import org.jbpm.process.audit.AbstractAuditLogger;
-import org.jbpm.process.audit.AuditLoggerFactory;
+
 import org.kie.api.event.process.ProcessCompletedEvent;
 import org.kie.api.event.process.ProcessEventListener;
 import org.kie.api.event.process.ProcessNodeLeftEvent;
@@ -20,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+
 import javax.annotation.PostConstruct;
 
 /**
@@ -57,8 +57,8 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
     // otherwise after server restart complete task won't move process
     // forward
     if (singletonRuntimeManager != null) {
-      RuntimeEngine runtime = singletonRuntimeManager
-          .getRuntimeEngine(ProcessInstanceIdContext.get());
+      RuntimeEngine runtime =
+          singletonRuntimeManager.getRuntimeEngine(ProcessInstanceIdContext.get());
       registerjBPMAuditing(runtime.getKieSession());
     }
     if (perProcessInstanceRuntimeManager != null) {
@@ -122,8 +122,8 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
         case PER_REQUEST:
         case PER_PROCESS_INSTANCE:
           runtimeManager = perProcessInstanceRuntimeManager;
-          runtime = runtimeManager
-              .getRuntimeEngine(ProcessInstanceIdContext.get(processInstanceId));
+          runtime =
+              runtimeManager.getRuntimeEngine(ProcessInstanceIdContext.get(processInstanceId));
           try {
             ksession = runtime.getKieSession();
           } catch (SessionNotFoundException snfe) {
@@ -154,10 +154,10 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
   }
 
   private void registerjBPMAuditing(KieSession ksession) {
-    AbstractAuditLogger auditLogger = AuditLoggerFactory.newInstance(AuditLoggerFactory.Type.JPA,
-        ksession, null);
+    // AbstractAuditLogger auditLogger = AuditLoggerFactory.newInstance(AuditLoggerFactory.Type.JPA,
+    // ksession, null);
 
-    ksession.addEventListener(auditLogger);
+    // ksession.addEventListener(auditLogger);
 
     // Registering ProcessEventListener to track process instances status
     ksession.addEventListener(new ProcessEventListener() {
