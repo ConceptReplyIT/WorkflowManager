@@ -6,8 +6,6 @@ import org.jbpm.executor.impl.jms.JmsAvailableJobsExecutor;
 import org.jbpm.process.audit.jms.AsyncAuditLogReceiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.annotation.JmsListenerConfigurer;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerEndpointRegistrar;
@@ -21,8 +19,6 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-@Configuration
-@EnableJms
 public class JMSConfig implements JmsListenerConfigurer {
 
   @Autowired
