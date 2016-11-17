@@ -19,6 +19,7 @@
 
 package it.reply.workflowmanager.spring.orchestrator.config;
 
+import it.reply.workflowmanager.spring.orchestrator.AvailableJobsExecutorBean;
 import it.reply.workflowmanager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
 
 import org.jbpm.executor.ExecutorServiceFactory;
@@ -41,6 +42,10 @@ import javax.persistence.EntityManagerFactory;
 @EnableTransactionManagement(proxyTargetClass = true)
 public class JPAExecutorServiceProducer {
 
+  public JPAExecutorServiceProducer() {
+    System.setProperty("org.jbpm.cdi.available.jobs.executor.name", AvailableJobsExecutorBean.BINDING_NAME);
+  }
+  
   @Autowired
   @WorkflowPersistenceUnit
   private EntityManagerFactory emf;

@@ -1,6 +1,7 @@
 package it.reply.workflowmanager.spring.orchestrator.config;
 
 import it.reply.workflowmanager.orchestrator.config.ConfigProducer;
+import it.reply.workflowmanager.spring.orchestrator.AvailableJobsExecutorBean;
 import it.reply.workflowmanager.spring.orchestrator.annotations.PerProcessInstance;
 import it.reply.workflowmanager.spring.orchestrator.annotations.PerRequest;
 import it.reply.workflowmanager.spring.orchestrator.annotations.Singleton;
@@ -15,6 +16,7 @@ import org.kie.spring.factorybeans.RuntimeManagerFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.HashMap;
@@ -41,6 +43,7 @@ public class WorkflowRuntimeConfig {
   private ExecutorService executorService;
 
   @Bean(destroyMethod = "close")
+  @DependsOn(AvailableJobsExecutorBean.BINDING_NAME)
   public RuntimeEnvironment runtimeEnvironment() throws Exception {
     RuntimeEnvironmentFactoryBean refb = new RuntimeEnvironmentFactoryBean();
     refb.setType(RuntimeEnvironmentFactoryBean.TYPE_DEFAULT);
