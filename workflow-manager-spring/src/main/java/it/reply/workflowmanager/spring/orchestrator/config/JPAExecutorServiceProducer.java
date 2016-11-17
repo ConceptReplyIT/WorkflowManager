@@ -45,7 +45,7 @@ public class JPAExecutorServiceProducer {
   @WorkflowPersistenceUnit
   private EntityManagerFactory emf;
 
-  @Bean
+  @Bean(destroyMethod = "destroy")
   public ExecutorService produceExecutorService() {
     ExecutorService service = ExecutorServiceFactory.newExecutorService(emf);
 
