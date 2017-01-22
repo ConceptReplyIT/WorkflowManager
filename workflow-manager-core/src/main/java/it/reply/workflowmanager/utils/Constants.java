@@ -13,5 +13,7 @@ public interface Constants {
 	public final static String ERROR_RESULT = "Error";
 	public final static String PERSISTENCE_UNIT_NAME = "org.jbpm.domain";
 	public final static String EXECUTOR_SERVICE = "ExecutorService";
+	public final static String SYNC_WIH_NAME = "syncEJB";
+	public final static String ASYNC_WIH_NAME = "asyncEJB";
 
 }

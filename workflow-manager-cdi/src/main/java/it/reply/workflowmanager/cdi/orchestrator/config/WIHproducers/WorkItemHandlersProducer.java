@@ -1,6 +1,6 @@
 package it.reply.workflowmanager.cdi.orchestrator.config.WIHproducers;
 
-import it.reply.workflowmanager.cdi.orchestrator.bpm.commands.EJBDispatcherCommand;
+import it.reply.workflowmanager.cdi.orchestrator.bpm.commands.CDIDispatcherCommand;
 import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
 import it.reply.workflowmanager.orchestrator.config.ConfigProducer;
 import it.reply.workflowmanager.orchestrator.config.WIHproducers.AbstractWorkItemHandlersProducer;
@@ -23,7 +23,7 @@ public class WorkItemHandlersProducer extends AbstractWorkItemHandlersProducer {
 
   @Override
   protected Class<? extends DispatcherCommand> getDistpacherCommandClass() {
-    return EJBDispatcherCommand.class;
+    return CDIDispatcherCommand.class;
   }
 
   @Inject

@@ -73,7 +73,7 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
     try {
       return (T) parameter;
     } catch (ClassCastException ex) {
-      LOG.error(String.format("Error retrieving parameter %s in WorkItem %s", parameterName, wi.getName()), ex);
+      LOG.error("Error retrieving parameter {} in WorkItem {}", parameterName, wi.getName(), ex);
       return null;
     }
   }
@@ -91,70 +91,85 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
    * <b>This method SHOULD NOT be overridden !</b> <br/>
    * Use the {@link BaseCommand#customExecute(CommandContext)} method for the command logic.
    */
+  @Override
   public ExecutionResults execute(CommandContext ctx) throws Exception {
-
-    // If the command is not an EJB an IllegalStateException will be thrown
-    AbstractBaseCommand proxyCommand = getFacade();
-
-    logCommandStarted(ctx);
-
-    ExecutionResults exRes = new ExecutionResults();
-    int maxNumOfTries = 1;
-    if (this instanceof RetriableCommand) {
-      maxNumOfTries = ((RetriableCommand) this).getNumOfMaxRetries(ctx);
-      if (maxNumOfTries <= 0) {
-        throw new IllegalArgumentException("Max num of retries must be > 0");
+    
+    if (Constants.ASYNC_WIH_NAME.equals(getWorkItem(ctx).getName())) {
+      // we must set the MDC only in async task
+      EJBWorkItemHelper.initMdcFromCtx(ctx);
+    }
+    
+    try {
+      // If the command is not an EJB an IllegalStateException will be thrown
+      AbstractBaseCommand proxyCommand = getFacade();
+  
+      logCommandStarted(ctx);
+  
+      ExecutionResults exRes = new ExecutionResults();
+      int maxNumOfTries = 1;
+      if (this instanceof RetriableCommand) {
+        maxNumOfTries = ((RetriableCommand) this).getNumOfMaxRetries(ctx);
+        if (maxNumOfTries <= 0) {
+          throw new IllegalArgumentException("Max num of retries must be > 0");
+        }
       }
-    }
-
-    if (userTx.getStatus() == Status.STATUS_ACTIVE) {
-      throw new IllegalStateException("There must be no active transaction");
-    }
-
-    int tries = 0;
-    boolean retryError;
-    do {
-      retryError = false;
-      userTx.begin();
-      try {
-        if (tries == 0) {
-          exRes = proxyCommand.customExecute(ctx);
-        } else {
-          logCommandRetry(exRes, tries, maxNumOfTries);
-          exRes = ((RetriableCommand) proxyCommand).retry(ctx);
-        }
-        if (userTx.getStatus() == Status.STATUS_MARKED_ROLLBACK) {
-          userTx.rollback();
-        } else {
-          userTx.commit();
-        }
-      } catch (Exception e) {
-        userTx.rollback();
-        boolean persistenceExceptionFound = false;
-        Throwable cause = e;
-        while (cause != null) {
-          if (cause instanceof PersistenceException || cause instanceof StaleObjectStateException) {
-            handlePersistenceException((Exception) cause, exRes);
-            persistenceExceptionFound = true;
-            break;
+  
+      if (userTx.getStatus() == Status.STATUS_ACTIVE) {
+        throw new IllegalStateException("There must be no active transaction");
+      }
+  
+      int tries = 0;
+      boolean retryError;
+      do {
+        retryError = false;
+        userTx.begin();
+        try {
+          if (tries == 0) {
+            exRes = proxyCommand.customExecute(ctx);
           } else {
-            cause = !cause.equals(cause.getCause()) ? cause.getCause() : null;
+            logCommandRetry(exRes, tries, maxNumOfTries);
+            exRes = ((RetriableCommand) proxyCommand).retry(ctx);
+          }
+          if (userTx.getStatus() == Status.STATUS_MARKED_ROLLBACK) {
+            userTx.rollback();
+          } else {
+            userTx.commit();
+          }
+        } catch (Exception e) {
+          userTx.rollback();
+          boolean persistenceExceptionFound = false;
+          Throwable cause = e;
+          while (cause != null) {
+            if (cause instanceof PersistenceException || cause instanceof StaleObjectStateException) {
+              handlePersistenceException((Exception) cause, exRes);
+              persistenceExceptionFound = true;
+              break;
+            } else {
+              cause = !cause.equals(cause.getCause()) ? cause.getCause() : null;
+            }
+          }
+          if (!persistenceExceptionFound) {
+            throw e;
           }
         }
-        if (!persistenceExceptionFound) {
-          throw e;
+        SignalEvent<?> signalEvent = (SignalEvent<?>) exRes.getData(Constants.SIGNAL_EVENT);
+        if (signalEvent != null && signalEvent.getType() == SignalEvent.SignalEventType.ERROR
+            && signalEvent.getSubType() == SignalEvent.SignalEventSubType.PERSISTENCE) {
+          retryError = true;
         }
+      } while (retryError && ++tries < maxNumOfTries);
+  
+      logCommandEnded(exRes);
+  
+      return exRes;
+    } catch (Exception ex) {
+      if (Constants.ASYNC_WIH_NAME.equals(getWorkItem(ctx).getName())) {
+        logger.error("Error executing command", ex);
+        EJBWorkItemHelper.mdcCleanUp(ctx);
+        // TODO should we handle the exception in some way?
       }
-      SignalEvent<?> signalEvent = (SignalEvent<?>) exRes.getData(Constants.SIGNAL_EVENT);
-      if (signalEvent != null && signalEvent.getType() == SignalEvent.SignalEventType.ERROR
-          && signalEvent.getSubType() == SignalEvent.SignalEventSubType.PERSISTENCE) {
-        retryError = true;
-      }
-    } while (retryError && ++tries < maxNumOfTries);
-
-    logCommandEnded(exRes);
-
-    return exRes;
+      throw ex;
+    }
   }
 
   /**

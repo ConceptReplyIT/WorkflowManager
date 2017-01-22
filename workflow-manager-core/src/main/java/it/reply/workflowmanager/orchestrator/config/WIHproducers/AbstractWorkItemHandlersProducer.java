@@ -4,6 +4,7 @@ import it.reply.workflowmanager.orchestrator.bpm.WIHs.AsyncEJBWorkItemHandler;
 import it.reply.workflowmanager.orchestrator.bpm.WIHs.SyncEJBWorkItemHandler;
 import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
 import it.reply.workflowmanager.orchestrator.config.ConfigProducer;
+import it.reply.workflowmanager.utils.Constants;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -41,6 +42,12 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
     executorService.setThreadPoolSize(configProducer.getExecutorServiceThreadPoolSize());
     executorService.setInterval(configProducer.getExecutorServiceInterval());
     this.executorService = executorService;
+    if (!executorService.isActive()) {
+      // TODO is it right to initialize it here?
+      LOG.info("Initializing ExecutorService.");
+      scheduleDBCleanUp(executorService);
+      executorService.init();
+    }
   }
 
   // Schedule delay of the first run of the LogCleanupCommand (in seconds)
@@ -58,20 +65,14 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
       final Map<String, Object> params) {
     final Map<String, WorkItemHandler> workItemHandlers = new HashMap<String, WorkItemHandler>();
 
-    if (!executorService.isActive()) {
-      LOG.info("Initializing ExecutorService.");
-      scheduleDBCleanUp(executorService);
-      executorService.init();
-    }
-
     AsyncEJBWorkItemHandler EJBasyncWIH = new AsyncEJBWorkItemHandler(executorService,
         getDistpacherCommandClass());
 
-    workItemHandlers.put("asyncEJB", EJBasyncWIH);
+    workItemHandlers.put(Constants.ASYNC_WIH_NAME, EJBasyncWIH);
 
     SyncEJBWorkItemHandler syncEJBWorkItemHandler = new SyncEJBWorkItemHandler(
         getDistpacherCommandClass());
-    workItemHandlers.put("syncEJB", syncEJBWorkItemHandler);
+    workItemHandlers.put(Constants.SYNC_WIH_NAME, syncEJBWorkItemHandler);
 
     return workItemHandlers;
   }

@@ -81,7 +81,8 @@ public class AutowireableRegisterableItemsFactory extends DefaultRegisterableIte
   private ExecutorService executorService;
 
   @Autowired
-  private ApplicationContext applicationContext;
+  private WorkItemHandlerProducer[] workItemHandlerProducers;
+
 
   @Override
   public Map<String, WorkItemHandler> getWorkItemHandlers(RuntimeEngine runtime) {
@@ -94,8 +95,7 @@ public class AutowireableRegisterableItemsFactory extends DefaultRegisterableIte
     parameters.put("kieContainer", getRuntimeManager().getKieContainer());
     parameters.put("executorService", executorService);
 
-    for (WorkItemHandlerProducer producer : applicationContext
-        .getBeansOfType(WorkItemHandlerProducer.class).values()) {
+    for (WorkItemHandlerProducer producer : workItemHandlerProducers) {
       try {
         handler.putAll(producer.getWorkItemHandlers(manager.getIdentifier(), parameters));
       } catch (Exception e) {

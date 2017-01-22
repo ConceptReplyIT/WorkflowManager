@@ -61,16 +61,16 @@ public class WorkflowRuntimeConfig {
     return env;
   }
 
-  @Bean(destroyMethod = "close")
-  @Singleton
-  public RuntimeManager singletonRuntimeManager() throws Exception {
-    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
-    rmfb.setIdentifier("default-singleton");
-    rmfb.setRuntimeEnvironment(runtimeEnvironment());
-    rmfb.setType("SINGLETON");
-    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
-    return rm;
-  }
+//  @Bean(destroyMethod = "close")
+//  @Singleton
+//  public RuntimeManager singletonRuntimeManager() throws Exception {
+//    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
+//    rmfb.setIdentifier("default-singleton");
+//    rmfb.setRuntimeEnvironment(runtimeEnvironment());
+//    rmfb.setType("SINGLETON");
+//    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
+//    return rm;
+//  }
 
   @Bean(destroyMethod = "close")
   @PerProcessInstance
@@ -83,14 +83,14 @@ public class WorkflowRuntimeConfig {
     return rm;
   }
 
-  @Bean(destroyMethod = "close")
-  @PerRequest
-  public RuntimeManager perRequesteRuntimeManager() throws Exception {
-    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
-    rmfb.setIdentifier("default-per-request");
-    rmfb.setRuntimeEnvironment(runtimeEnvironment());
-    rmfb.setType("PER_REQUEST");
-    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
-    return rm;
-  }
+//  @Bean(destroyMethod = "close")
+//  @PerRequest
+//  public RuntimeManager perRequesteRuntimeManager() throws Exception {
+//    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
+//    rmfb.setIdentifier("default-per-request");
+//    rmfb.setRuntimeEnvironment(runtimeEnvironment());
+//    rmfb.setType("PER_REQUEST");
+//    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
+//    return rm;
+//  }
 }

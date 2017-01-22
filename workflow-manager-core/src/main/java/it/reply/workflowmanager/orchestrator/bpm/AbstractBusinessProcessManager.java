@@ -58,15 +58,16 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
     // forward
     if (singletonRuntimeManager != null) {
       RuntimeEngine runtime =
-          singletonRuntimeManager.getRuntimeEngine(ProcessInstanceIdContext.get());
+          singletonRuntimeManager.getRuntimeEngine(EmptyContext.get());
       registerjBPMAuditing(runtime.getKieSession());
+      // TODO shouldn't we also dispose it? (we should be outside of a JTA transaction at this time)
     }
-    if (perProcessInstanceRuntimeManager != null) {
-      perProcessInstanceRuntimeManager.toString();
-    }
-    if (perRequestRuntimeManager != null) {
-      perRequestRuntimeManager.toString();
-    }
+//    if (perProcessInstanceRuntimeManager != null) {
+//      perProcessInstanceRuntimeManager.toString();
+//    }
+//    if (perRequestRuntimeManager != null) {
+//      perRequestRuntimeManager.toString();
+//    }
 
   }
 

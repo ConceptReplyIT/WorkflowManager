@@ -27,7 +27,7 @@ public class BusinessProcessManagerBean extends AbstractBusinessProcessManager {
 
   public static Logger LOG = LoggerFactory.getLogger(BusinessProcessManagerBean.class);
 
-  @Autowired
+//  @Autowired
   @Override
   public void setSingletonRuntimeManager(@Singleton RuntimeManager singletonRuntimeManager) {
     super.setSingletonRuntimeManager(singletonRuntimeManager);

@@ -2,6 +2,8 @@ package it.reply.workflowmanager.orchestrator.bpm.commands;
 
 import it.reply.workflowmanager.orchestrator.bpm.ejbcommands.IEJBCommand;
 import org.kie.api.executor.Command;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 
 /**
  * This class implements a jBPM Executor Command which works as a dispatcher to load EJB commands.
@@ -15,4 +17,5 @@ import org.kie.api.executor.Command;
  */
 public interface DispatcherCommand extends Command {
 
+  public ExecutionResults dispatch(String eJBCommandClass, CommandContext ctx) throws Exception;
 }

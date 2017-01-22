@@ -58,8 +58,6 @@ public class SyncEJBWorkItemHandler implements WorkItemHandler {
         logger.warn("Command class parameter was empty, using {} as fallback", cmdClass);
       }
 
-      logger.debug("Command class for this execution is {}", cmdClass);
-
       CommandContext ctxCMD = EJBWorkItemHelper.buildCommandContext(workItem, logger);
 
       logger.trace("Command context {}", ctxCMD);
@@ -69,32 +67,15 @@ public class SyncEJBWorkItemHandler implements WorkItemHandler {
       EJBWorkItemHelper.checkWorkItemOutcome(exResults, workItem, ctxCMD, logger);
 
     } catch (Exception e) {
-      logger.error("ERROR: Unable to instantiate requested command.", e);
-      manager.abortWorkItem(-1);
+      logger.error("Unable to instantiate requested command.", e);
+      manager.abortWorkItem(workItem.getId());
     }
 
   }
 
   @Override
   public void abortWorkItem(WorkItem workItem, WorkItemManager manager) {
-    // String businessKey = buildBusinessKey(workItem);
-    // logger.info(
-    // "Looking up for not cancelled and not done requests for business key {}",
-    // businessKey);
-    // List<RequestInfo> requests = executorService
-    // .getRequestsByBusinessKey(businessKey);
-    // if (requests != null) {
-    // for (RequestInfo request : requests) {
-    // if (request.getStatus() != STATUS.CANCELLED
-    // && request.getStatus() != STATUS.DONE
-    // && request.getStatus() != STATUS.ERROR) {
-    // logger.info(
-    // "About to cancel request with id {} and business key {} request state {}",
-    // request.getId(), businessKey, request.getStatus());
-    // executorService.cancelRequest(request.getId());
-    // }
-    // }
-    // }
+    // DO NOTHING
   }
 
 }

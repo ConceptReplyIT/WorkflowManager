@@ -4,20 +4,14 @@ import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
 
 /* Copyright 2013 JBoss by Red Hat. */
 
-import it.reply.workflowmanager.utils.Constants;
-
 import org.jbpm.executor.impl.wih.AsyncWorkItemHandler;
 import org.jbpm.executor.impl.wih.AsyncWorkItemHandlerCmdCallback;
-import org.kie.api.runtime.manager.RuntimeEngine;
-import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.WorkItem;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.runtime.process.WorkItemManager;
-import org.kie.api.executor.CommandCallback;
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 import org.kie.api.executor.ExecutorService;
-import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +38,6 @@ public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements Wor
 
   private static final Logger logger = LoggerFactory.getLogger(AsyncEJBWorkItemHandler.class);
 
-  // private String commandClass;
   private ExecutorService executorService;
 
   private Class<? extends DispatcherCommand> distpacherCommandClass;
@@ -59,9 +52,10 @@ public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements Wor
   @Override
   public void executeWorkItem(WorkItem workItem, WorkItemManager manager) {
 
-    String cmdClass = distpacherCommandClass.getCanonicalName();
+    String cmdClass = null;
     try {
-
+      
+      cmdClass = distpacherCommandClass.getCanonicalName();
       if (executorService == null || !executorService.isActive()) {
         throw new IllegalStateException("Executor is not set or is not active");
       }
@@ -72,34 +66,38 @@ public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements Wor
       if (workItem.getParameter("Retries") != null) {
         ctxCMD.setData("retries", Integer.parseInt(workItem.getParameter("Retries").toString()));
       }
-
+      EJBWorkItemHelper.putMdcInCtx(ctxCMD);
+      
       logger.trace("Command context {}", ctxCMD);
       Long requestId = executorService.scheduleRequest(cmdClass, ctxCMD);
       logger.debug("Request scheduled successfully with id {}", requestId);
     } catch (Exception e) {
-      logger.error("ERROR: Unable to instantiate requested command (" + cmdClass + ").", e);
+      logger.error("Unable to instantiate requested command ({})", cmdClass, e);
 
-      manager.abortWorkItem(-1);
+      manager.abortWorkItem(workItem.getId());
     }
-
   }
 
-  public static class AsyncEJBWorkItemHandlerCmdCallback extends AsyncWorkItemHandlerCmdCallback
-      implements CommandCallback {
+  public static class AsyncEJBWorkItemHandlerCmdCallback extends AsyncWorkItemHandlerCmdCallback {
 
     @Override
-    public void onCommandDone(CommandContext ctx, ExecutionResults results) {
-      WorkItem workItem = (WorkItem) ctx.getData(Constants.WORKITEM);
-      logger.debug("About to complete work item {}", workItem);
+    public void onCommandDone(CommandContext ctx, ExecutionResults results) {   
+      try {
+        WorkItem workItem = EJBWorkItemHelper.getWorkItem(ctx);
+        EJBWorkItemHelper.checkWorkItemOutcome(results, workItem, ctx, logger);
+        super.onCommandDone(ctx, results);
+      } finally {
+        EJBWorkItemHelper.mdcCleanUp(ctx);
+      }
+    }
 
-      // find the right runtime to do the complete
-      RuntimeManager manager = getRuntimeManager(ctx);
-      RuntimeEngine engine = manager.getRuntimeEngine(
-          ProcessInstanceIdContext.get((Long) ctx.getData(Constants.PROCESS_INSTANCE_ID)));
-
-      EJBWorkItemHelper.checkWorkItemOutcome(results, workItem, ctx, logger);
-
-      manager.disposeRuntimeEngine(engine);
+    @Override
+    public void onCommandError(CommandContext ctx, Throwable exception) {
+      try {
+        super.onCommandError(ctx, exception);
+      } finally {
+        EJBWorkItemHelper.mdcCleanUp(ctx);
+      }
     }
   }
 }

@@ -1,22 +1,31 @@
 package it.reply.workflowmanager.orchestrator.bpm.WIHs;
 
+import com.google.common.collect.Maps;
+
 import it.reply.workflowmanager.orchestrator.bpm.WIHs.misc.SignalEvent;
 import it.reply.workflowmanager.utils.Constants;
 
 import org.drools.core.process.instance.WorkItemManager;
 import org.drools.core.process.instance.impl.WorkItemImpl;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.WorkItem;
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
 import org.kie.internal.runtime.manager.RuntimeManagerRegistry;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 public final class EJBWorkItemHelper {
 
+  private static final Logger LOG = LoggerFactory.getLogger(EJBWorkItemHelper.class);
+      
   private EJBWorkItemHelper() {
   }
 
@@ -89,6 +98,10 @@ public final class EJBWorkItemHelper {
         .getRuntimeEngine(ProcessInstanceIdContext.get(getProcessInstanceId(ctx)));
     return engine;
   }
+  
+  public static WorkItem getWorkItem(CommandContext ctx) {
+    return (WorkItem) ctx.getData(Constants.WORKITEM);
+  }
 
   /**
    * If the workitem has failed (i.e. a <code>SignalEvent</code> is present in the results) an error
@@ -107,6 +120,7 @@ public final class EJBWorkItemHelper {
   @SuppressWarnings("unchecked")
   public static void checkWorkItemOutcome(ExecutionResults results, WorkItem workItem,
       CommandContext ctx, Logger logger) {
+    logger.debug("About to complete workItem {}", workItem);
     RuntimeEngine engine = getRuntimeEngine(ctx);
     SignalEvent<Error> signalEvent = (SignalEvent<Error>) results.getData(Constants.SIGNAL_EVENT);
     if (signalEvent != null) {
@@ -123,28 +137,65 @@ public final class EJBWorkItemHelper {
 
       if (logger != null)
         logger.debug(
-            "Command threw " + signalEvent.getType().toString().toLowerCase() + " signal {}",
+            "Command threw {} signal with payload {}", signalEvent.getType(),
             payload);
 
-      // Abort the failed WorkItem
-      try {
-        engine.getKieSession().getWorkItemManager().abortWorkItem(-1);
-      } catch (Exception e) {
-        if (logger != null)
-          logger.debug("Cannot abort workitem {}", workItem);
-      }
     } else {
       if (logger != null)
         logger.debug("Command executed successfully with results {}", results);
+    }
+  }
 
-      // Complete the successful WorkItem
-      try {
-        engine.getKieSession().getWorkItemManager().completeWorkItem(workItem.getId(),
-            results.getData());
-      } catch (Exception e) {
-        if (logger != null)
-          logger.debug("Cannot complete workitem {}", workItem);
+  public static void initMdcFromCtx(CommandContext ctx) {
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, String> oldMdcCtx = MDC.getCopyOfContextMap();
+      if (oldMdcCtx == null) {
+        oldMdcCtx = Maps.newHashMap();
       }
+      @SuppressWarnings("unchecked")
+      Map<String, String> MDCctx = (Map<String, String>) ctx.getData("MDC");
+      if (MDCctx != null) {
+        for (Entry<String, String> entry : MDCctx.entrySet()) {
+          String oldValue = oldMdcCtx.put(entry.getKey(), entry.getValue());
+          if (oldValue != null) {
+            LOG.warn("Overwriting MDC for key {}: MDC value {}, ctx value {}", entry.getKey(), oldValue, entry.getValue());
+          }
+        }
+        MDC.setContextMap(oldMdcCtx);
+      }
+    } catch (Exception ex) {
+      LOG.error("Error initializing MDC", ex);
+    }
+  }
+  
+  public static void putMdcInCtx(CommandContext ctx) {
+    @SuppressWarnings("unchecked")
+    Map<String, String> mdc = MDC.getCopyOfContextMap();
+    if (mdc != null && !mdc.isEmpty()) {
+      ctx.setData("MDC", mdc);
+    }
+  }
+
+  public static void mdcCleanUp(CommandContext ctx) {
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, String> MDCctx = (Map<String, String>) ctx.getData("MDC");
+      if (MDCctx != null) {
+        for (Entry<String, String> entry : MDCctx.entrySet()) {
+          Object mdcValue = MDC.get(entry.getKey());
+          if (mdcValue == null) {
+            LOG.warn("Mismatch while cleaning MDC for key {}: no MDC value found, ctx value {}", entry.getKey(), entry.getValue());
+          } else {
+            if (!mdcValue.equals(entry.getValue())) {
+              LOG.warn("Mismatch while cleaning MDC for key {}: MDC value {}, ctx value {}", entry.getKey(), mdcValue, entry.getValue());
+            }
+            MDC.remove(entry.getKey());
+          }
+        }
+      }
+    } catch (Exception ex) {
+      LOG.error("Error cleaning MDC", ex);
     }
   }
 }
