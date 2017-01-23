@@ -60,7 +60,8 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
       RuntimeEngine runtime =
           singletonRuntimeManager.getRuntimeEngine(EmptyContext.get());
       registerjBPMAuditing(runtime.getKieSession());
-      // TODO shouldn't we also dispose it? (we should be outside of a JTA transaction at this time)
+      // no-op operation, doing it anyway
+      singletonRuntimeManager.disposeRuntimeEngine(runtime);
     }
 //    if (perProcessInstanceRuntimeManager != null) {
 //      perProcessInstanceRuntimeManager.toString();
@@ -86,9 +87,9 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
           registerjBPMAuditing(ksession);
           break;
         case PER_REQUEST:
+          runtimeManager = perRequestRuntimeManager;
           throw new UnsupportedOperationException(
               "Only singleton & per request RM supported currently.");
-          // runtimeManager = perRequestRuntimeManager;
           // runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
           // ksession = runtime.getKieSession();
           // registerjBPMAuditing(ksession);
@@ -120,7 +121,6 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
       RuntimeManager runtimeManager = null;
       KieSession ksession = null;
       switch (runtimeStrat) {
-        case PER_REQUEST:
         case PER_PROCESS_INSTANCE:
           runtimeManager = perProcessInstanceRuntimeManager;
           runtime =
@@ -131,6 +131,11 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
             LOG.warn("Error aborting process instance {}.", processInstanceId);
             return;
           }
+          break;
+        case PER_REQUEST:
+          runtimeManager = perRequestRuntimeManager;
+          runtime = runtimeManager.getRuntimeEngine(EmptyContext.get());
+          ksession = runtime.getKieSession();
           break;
         case SINGLETON:
           runtimeManager = singletonRuntimeManager;
@@ -165,13 +170,13 @@ public abstract class AbstractBusinessProcessManager implements BusinessProcessM
 
       @Override
       public void beforeProcessStarted(ProcessStartedEvent event) {
-        LOG.info("PROCESS STARTED instanceId(" + event.getProcessInstance().getId() + ")");
+        LOG.info("PROCESS STARTED instanceId({})", event.getProcessInstance().getId());
       }
 
       @Override
       public void afterProcessCompleted(ProcessCompletedEvent event) {
         // Track processInstance completed
-        LOG.info("PROCESS COMPLETED instanceId(" + event.getProcessInstance().getId() + ")");
+        LOG.info("PROCESS COMPLETED instanceId({})", event.getProcessInstance().getId());
       }
 
       @Override
