@@ -29,12 +29,11 @@ public final class EJBWorkItemHelper {
   private EJBWorkItemHelper() {
   }
 
-  public static CommandContext buildCommandContext(WorkItem workItem, Logger logger) {
+  public static CommandContext buildCommandContext(WorkItem workItem, Logger externalLogger) {
     String businessKey = buildBusinessKey(workItem);
 
-    if (logger != null) {
-      logger.debug("Executing work item {} with built business key {}", workItem, businessKey);
-    }
+    Logger logger = externalLogger != null ? externalLogger : LOG;
+    logger.debug("Executing work item {} with built business key {}", workItem, businessKey);
 
     CommandContext ctxCMD = new CommandContext();
     ctxCMD.setData(Constants.BUSINESS_KEY, businessKey);
@@ -119,7 +118,8 @@ public final class EJBWorkItemHelper {
    */
   @SuppressWarnings("unchecked")
   public static void checkWorkItemOutcome(ExecutionResults results, WorkItem workItem,
-      CommandContext ctx, Logger logger) {
+      CommandContext ctx, Logger externalLogger) {
+    Logger logger = externalLogger != null ? externalLogger : LOG;
     logger.debug("About to complete workItem {}", workItem);
     RuntimeEngine engine = getRuntimeEngine(ctx);
     SignalEvent<Error> signalEvent = (SignalEvent<Error>) results.getData(Constants.SIGNAL_EVENT);
@@ -134,15 +134,12 @@ public final class EJBWorkItemHelper {
       }
       signalEvent(engine.getKieSession(), signalEvent.getName(), payload,
           workItem.getProcessInstanceId());
-
-      if (logger != null)
-        logger.debug(
+      logger.debug(
             "Command threw {} signal with payload {}", signalEvent.getType(),
             payload);
 
     } else {
-      if (logger != null)
-        logger.debug("Command executed successfully with results {}", results);
+      logger.debug("Command executed successfully with results {}", results);
     }
   }
 
