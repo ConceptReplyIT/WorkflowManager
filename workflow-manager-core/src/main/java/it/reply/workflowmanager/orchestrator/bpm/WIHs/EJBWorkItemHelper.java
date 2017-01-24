@@ -91,8 +91,7 @@ public final class EJBWorkItemHelper {
     return runtimeManager;
   }
 
-  public static RuntimeEngine getRuntimeEngine(CommandContext ctx) {
-    RuntimeManager manager = getRuntimeManager(ctx);
+  public static RuntimeEngine getRuntimeEngine(RuntimeManager manager, CommandContext ctx) {
     RuntimeEngine engine = manager
         .getRuntimeEngine(ProcessInstanceIdContext.get(getProcessInstanceId(ctx)));
     return engine;
@@ -121,7 +120,6 @@ public final class EJBWorkItemHelper {
       CommandContext ctx, Logger externalLogger) {
     Logger logger = externalLogger != null ? externalLogger : LOG;
     logger.debug("About to complete workItem {}", workItem);
-    RuntimeEngine engine = getRuntimeEngine(ctx);
     SignalEvent<Error> signalEvent = (SignalEvent<Error>) results.getData(Constants.SIGNAL_EVENT);
     if (signalEvent != null) {
       Object payload = null;
@@ -132,12 +130,20 @@ public final class EJBWorkItemHelper {
           break;
 
       }
-      signalEvent(engine.getKieSession(), signalEvent.getName(), payload,
-          workItem.getProcessInstanceId());
-      logger.debug(
-            "Command threw {} signal with payload {}", signalEvent.getType(),
-            payload);
-
+      RuntimeManager manager = getRuntimeManager(ctx);
+      RuntimeEngine engine = null;
+      try {
+          engine = getRuntimeEngine(manager, ctx);
+        signalEvent(engine.getKieSession(), signalEvent.getName(), payload,
+            workItem.getProcessInstanceId());
+        logger.debug(
+              "Command threw {} signal with payload {}", signalEvent.getType(),
+              payload);
+      } finally {
+        if (engine != null) {
+          manager.disposeRuntimeEngine(engine);
+        }
+      }
     } else {
       logger.debug("Command executed successfully with results {}", results);
     }
