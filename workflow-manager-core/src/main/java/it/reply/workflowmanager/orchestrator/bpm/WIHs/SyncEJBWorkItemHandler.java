@@ -6,13 +6,13 @@ import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
 
 import it.reply.workflowmanager.utils.Constants;
 
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.process.WorkItem;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.runtime.process.WorkItemManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
 
 /**
  * Asynchronous work item handler that utilizes power of <code>ExecutorService</code>. it expects
@@ -65,6 +65,7 @@ public class SyncEJBWorkItemHandler implements WorkItemHandler {
       exResults = dispatcherCommand.execute(ctxCMD);
 
       EJBWorkItemHelper.checkWorkItemOutcome(exResults, workItem, ctxCMD, logger);
+      manager.completeWorkItem(workItem.getId(), exResults.getData());
 
     } catch (Exception e) {
       logger.error("Unable to instantiate requested command.", e);
