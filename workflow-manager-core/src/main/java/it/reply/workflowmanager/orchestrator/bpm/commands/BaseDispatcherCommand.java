@@ -18,16 +18,29 @@ public abstract class BaseDispatcherCommand implements DispatcherCommand {
 
   @Override
   public ExecutionResults execute(CommandContext ctx) throws Exception {
-
     WorkItem workItem = EJBWorkItemHelper.getWorkItem(ctx);
-    
-    String eJBCommandClass = (String) workItem.getParameter(Constants.EJB_COMMAND_CLASS);
+    try {
+      
+      if (Constants.ASYNC_WIH_NAME.equals(workItem.getName())) {
+        // we must set the MDC only in async task
+        EJBWorkItemHelper.initMdcFromCtx(ctx);
+      }
+      
+      String eJBCommandClass = (String) workItem.getParameter(Constants.EJB_COMMAND_CLASS);
+  
+      if (Strings.isNullOrEmpty(eJBCommandClass)) {
+        LOG.warn("Executing dummy command because of empty {}", Constants.EJB_COMMAND_CLASS);
+        return new ExecutionResults();
+      }
 
-    if (Strings.isNullOrEmpty(eJBCommandClass)) {
-      LOG.warn("Executing dummy command because of empty {}", Constants.EJB_COMMAND_CLASS);
-      return new ExecutionResults();
+      return dispatch(eJBCommandClass, ctx);
+    } catch (Exception ex) {
+      if (workItem != null && Constants.ASYNC_WIH_NAME.equals(workItem.getName())) {
+        LOG.error("Error executing command", ex);
+        EJBWorkItemHelper.mdcCleanUp(ctx);
+        // TODO should we handle the exception in some way?
+      }
+      throw ex;
     }
-
-    return dispatch(eJBCommandClass, ctx);
   }
 }
