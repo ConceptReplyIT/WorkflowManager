@@ -130,7 +130,11 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
           userTx.commit();
         }
       } catch (Exception e) {
-        userTx.rollback();
+        try {
+          userTx.rollback();
+        } catch (IllegalStateException iex) {
+          LOG.error("Error trying to rolling back the transaction", iex);
+        }
         boolean persistenceExceptionFound = false;
         Throwable cause = e;
         while (cause != null) {
