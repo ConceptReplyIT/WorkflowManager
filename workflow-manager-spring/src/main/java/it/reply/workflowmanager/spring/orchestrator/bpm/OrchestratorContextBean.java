@@ -50,7 +50,7 @@ public class OrchestratorContextBean extends AbstractOrchestratorContext {
         while (OrchestratorContextBean.APPLICATION_CONTEXT == null) {
           LOG.debug("Thread <{}> waiting for ApplicationContext to be set",
               Thread.currentThread().getName());
-            CONDITION.await(1, TimeUnit.SECONDS);
+          CONDITION.await(1, TimeUnit.SECONDS);
         }
       } finally {
         LOCK.unlock();
@@ -68,7 +68,7 @@ public class OrchestratorContextBean extends AbstractOrchestratorContext {
   }
   
   @Override
-  public IEJBCommand getCommand(Class<? extends IEJBCommand> commandClass) {
+  public <T extends IEJBCommand<T>> T getCommand(Class<T> commandClass) {
     return applicationContext.getBean(commandClass);
   }
 

@@ -11,8 +11,8 @@ import it.reply.workflowmanager.orchestrator.bpm.ejbcommands.IEJBCommand;
  */
 public interface OrchestratorContext {
 
-  public IEJBCommand getCommand(String className) throws ClassNotFoundException;
+  public <T extends IEJBCommand<T>> T getCommand(String className) throws ClassNotFoundException;
 
-  public IEJBCommand getCommand(Class<? extends IEJBCommand> commandClass);
+  public <T extends IEJBCommand<T>> T getCommand(Class<T> commandClass);
 
 }

@@ -33,17 +33,22 @@ import org.kie.api.executor.ExecutionResults;
  * @author l.biava
  * 
  */
-public abstract class AbstractBaseCommand implements IEJBCommand {
+public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
+    implements IEJBCommand<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseCommand.class);
 
-  protected CustomLogger logger;
+  protected final CustomLogger logger;
 
+  protected final Class<T> selfClazz;
+  
   @Resource
   private UserTransaction userTx;
 
+  @SuppressWarnings("unchecked")
   public AbstractBaseCommand() {
     logger = CustomLoggerFactory.getLogger(this.getClass());
+    selfClazz = (Class<T>) this.getClass();
   }
 
   /**
@@ -60,18 +65,18 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
   /**
    * Returns the proxy on which call business methods.
    */
-  protected abstract AbstractBaseCommand getFacade();
+  protected abstract T getFacade();
 
   public static WorkItem getWorkItem(CommandContext ctx) {
     return (WorkItem) ctx.getData(Constants.WORKITEM);
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> T getParameter(CommandContext ctx, String parameterName) {
+  public static <C> C getParameter(CommandContext ctx, String parameterName) {
     WorkItem wi = getWorkItem(ctx);
     Object parameter = wi.getParameter(parameterName);
     try {
-      return (T) parameter;
+      return (C) parameter;
     } catch (ClassCastException ex) {
       LOG.error("Error retrieving parameter {} in WorkItem {}", parameterName, wi.getName(), ex);
       return null;
@@ -95,7 +100,7 @@ public abstract class AbstractBaseCommand implements IEJBCommand {
   public ExecutionResults execute(CommandContext ctx) throws Exception {
 
     // If the command is not an EJB an IllegalStateException will be thrown
-    AbstractBaseCommand proxyCommand = getFacade();
+    T proxyCommand = getFacade();
 
     logCommandStarted(ctx);
 

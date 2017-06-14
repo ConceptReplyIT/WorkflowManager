@@ -10,7 +10,7 @@ import org.kie.api.executor.ExecutionResults;
  * @author l.biava
  * 
  */
-public interface IEJBCommand {
+public interface IEJBCommand<T extends IEJBCommand<T>> {
   /**
    * Executed this command's logic.
    * 

@@ -12,9 +12,8 @@ import it.reply.workflowmanager.orchestrator.bpm.ejbcommands.IEJBCommand;
 public abstract class AbstractOrchestratorContext implements OrchestratorContext {
 
   @Override
-  public IEJBCommand getCommand(String className) throws ClassNotFoundException {
-    Class<? extends IEJBCommand> commandClass = Class.forName(className)
-        .asSubclass(IEJBCommand.class);
+  public <T extends IEJBCommand<T>> T getCommand(String className) throws ClassNotFoundException {
+    Class<T> commandClass = (Class<T>) Class.forName(className);
     return getCommand(commandClass);
   }
 

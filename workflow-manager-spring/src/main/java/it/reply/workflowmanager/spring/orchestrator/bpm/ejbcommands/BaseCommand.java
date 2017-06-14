@@ -22,22 +22,22 @@ import javax.annotation.PostConstruct;
  * 
  */
 // @ManageEntities
-public abstract class BaseCommand extends AbstractBaseCommand {
+public abstract class BaseCommand<T extends BaseCommand<T>> extends AbstractBaseCommand<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseCommand.class);
 
   @Autowired
   private ApplicationContext applicationContext;
 
-  private BaseCommand self;
+  private T self;
 
   @PostConstruct
   private void init() throws Exception {
-    self = applicationContext.getBean(this.getClass());
+    self = applicationContext.getBean(this.selfClazz);
   }
 
   @Override
-  protected AbstractBaseCommand getFacade() {
+  protected T getFacade() {
     return self;
   }
 
