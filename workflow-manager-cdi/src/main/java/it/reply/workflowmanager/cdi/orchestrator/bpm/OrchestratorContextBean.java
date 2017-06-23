@@ -24,10 +24,10 @@ import java.lang.annotation.Annotation;
 public class OrchestratorContextBean extends AbstractOrchestratorContext {
 
   @Inject
-  private Instance<IEJBCommand> ejbCommands;
+  private Instance<IEJBCommand<? extends IEJBCommand<?>>> ejbCommands;
 
   @Override
-  public IEJBCommand getCommand(Class<? extends IEJBCommand> commandClass) {
+  public <T extends IEJBCommand<T>> T getCommand(Class<T> commandClass) {
     // Check if the requested command class extends/implements another class in addition to
     // BaseCommand or IEJBCommand.
     // In this case the command must have at least a local view.

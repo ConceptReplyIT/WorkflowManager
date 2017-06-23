@@ -20,7 +20,7 @@ import javax.ejb.TransactionAttributeType;
  * 
  */
 @ManageEntities
-public abstract class BaseCommand extends AbstractBaseCommand {
+public abstract class BaseCommand<T extends BaseCommand<T>> extends AbstractBaseCommand<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseCommand.class);
 

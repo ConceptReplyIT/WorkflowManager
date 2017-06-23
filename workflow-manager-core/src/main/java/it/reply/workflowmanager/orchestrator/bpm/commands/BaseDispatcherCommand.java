@@ -34,7 +34,7 @@ public abstract class BaseDispatcherCommand implements DispatcherCommand {
 
   @Override
   public ExecutionResults dispatch(String eJBCommandClass, CommandContext ctx) throws Exception {
-    IEJBCommand ejbCommand = orchestratorContext.getCommand(eJBCommandClass);
+    IEJBCommand<?> ejbCommand = orchestratorContext.getCommand(eJBCommandClass);
     return ejbCommand.execute(ctx);
   }
   
