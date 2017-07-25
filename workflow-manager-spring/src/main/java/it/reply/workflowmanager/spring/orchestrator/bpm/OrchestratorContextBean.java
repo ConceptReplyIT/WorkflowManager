@@ -1,9 +1,7 @@
 package it.reply.workflowmanager.spring.orchestrator.bpm;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,51 +18,23 @@ public class OrchestratorContextBean extends AbstractOrchestratorContext {
   private static final Logger LOG =
       LoggerFactory.getLogger(OrchestratorContextBean.class);
   
+  private static final CountDownLatch LATCH = new CountDownLatch(1);
+  
   private static ApplicationContext APPLICATION_CONTEXT;
 
-  private static final ReentrantLock LOCK = new ReentrantLock();
+  private final ApplicationContext applicationContext;
   
-  private static final Condition CONDITION = LOCK.newCondition();
-
-  public static void setStaticApplicationContext(ApplicationContext applicationContext) {
-    Objects.requireNonNull(applicationContext, "ApplicationContext must not be null");
-    if (OrchestratorContextBean.APPLICATION_CONTEXT == null) {
-      LOCK.lock();
-      try {
-        if (OrchestratorContextBean.APPLICATION_CONTEXT == null) {
-          OrchestratorContextBean.APPLICATION_CONTEXT = applicationContext;
-          CONDITION.signalAll();
-          LOG.debug("Thread <{}> set ApplicationContext",
-              Thread.currentThread().getName());
-        }
-      } finally {
-        LOCK.unlock();
-      }
-    }
+  @Autowired
+  private OrchestratorContextBean(ApplicationContext applicationContext) {
+    this.applicationContext = Objects.requireNonNull(applicationContext, "Application Context must not be null");
+    APPLICATION_CONTEXT = applicationContext;
+    LATCH.countDown();
+    LOG.debug("ApplicationContext set by thread <{}>", Thread.currentThread());
   }
   
   public static <T> T getBean(Class<T> beanClass) throws InterruptedException {
-    if (OrchestratorContextBean.APPLICATION_CONTEXT == null) {
-      LOCK.lock();
-      try {
-        while (OrchestratorContextBean.APPLICATION_CONTEXT == null) {
-          LOG.debug("Thread <{}> waiting for ApplicationContext to be set",
-              Thread.currentThread().getName());
-          CONDITION.await(1, TimeUnit.SECONDS);
-        }
-      } finally {
-        LOCK.unlock();
-      }
-    }
-    return OrchestratorContextBean.APPLICATION_CONTEXT.getBean(beanClass);
-  }
-  
-  private final ApplicationContext applicationContext;
-
-  @Autowired
-  public OrchestratorContextBean(ApplicationContext applicationContext) {
-    this.applicationContext = applicationContext;
-    OrchestratorContextBean.setStaticApplicationContext(applicationContext);
+    LATCH.await();
+    return APPLICATION_CONTEXT.getBean(beanClass);
   }
   
   @Override

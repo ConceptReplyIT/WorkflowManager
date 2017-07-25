@@ -1,102 +1,139 @@
 package it.reply.workflowmanager.logging;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.StringWriter;
 
 public class CustomLoggerImpl extends CustomLogger {
 
-  public CustomLoggerImpl(Logger logger, Class<?> clazz) {
-    super(logger, clazz);
-  }
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public Logger getLogger() {
-    return logger;
-  }
-
-  // @Override
-  // public void fatal(String message) {
-  // logger.fatal(tag + message);
-  // }
-  //
-  // @Override
-  // public void fatal(Object message) {
-  // String text;
-  // try {
-  // text = serializeJson(message);
-  // logger.fatal(tag + text);
-  // } catch (IOException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // }
-  // }
-
-  @Override
-  public void error(String message) {
-    logger.error(tag + message);
+  protected CustomLoggerImpl(Logger logger) {
+    super(logger);
   }
 
   @Override
-  public void error(String message, Throwable cause) {
-    logger.error(tag + message, cause);
+  public boolean isTraceEnabled() {
+    return logger.isTraceEnabled();
   }
 
   @Override
-  public void error(Object message) {
-    String text;
-    try {
-      text = serializeJson(message);
-      logger.error(tag + text);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+  public void trace(String message, Object... arguments) {
+    if (isTraceEnabled()) {
+      logger.trace(String.format("%s%s", tag, message), arguments);
     }
   }
 
   @Override
-  public void info(String message) {
-    logger.info(tag + message);
-  }
-
-  @Override
-  public void info(Object message) {
-    String text;
-    try {
-      text = serializeJson(message);
-      logger.info(tag + text);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+  public void trace(Object obj) {
+    if (logger.isTraceEnabled()) {
+      logger.trace(serializeJson(tag, obj));
     }
   }
 
   @Override
-  public void warn(String message) {
-    logger.warn(tag + message);
+  public boolean isDebugEnabled() {
+    return logger.isDebugEnabled();
   }
 
   @Override
-  public void warn(Object message) {
-    String text;
-    try {
-      text = serializeJson(message);
-      logger.warn(tag + text);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+  public void debug(String message, Object... arguments) {
+    if (isDebugEnabled()) {
+      logger.debug(String.format("%s%s", tag, message), arguments);
     }
   }
 
-  public static String serializeJson(Object obj) throws JsonProcessingException {
-    ObjectMapper om = new ObjectMapper();
+  @Override
+  public void debug(Object obj) {
+    if (logger.isDebugEnabled()) {
+      logger.debug(serializeJson(tag, obj));
+    }
+  }
 
-    String result = om.writeValueAsString(obj);
+  @Override
+  public boolean isInfoEnabled() {
+    return logger.isInfoEnabled();
+  }
 
+  @Override
+  public void info(String message, Object... arguments) {
+    if (isInfoEnabled()) {
+      logger.info(String.format("%s%s", tag, message), arguments);
+    }
+  }
+
+  @Override
+  public void info(Object obj) {
+    if (logger.isInfoEnabled()) {
+      logger.info(serializeJson(tag, obj));
+    }
+  }
+
+  @Override
+  public boolean isWarnEnabled() {
+    return logger.isWarnEnabled();
+  }
+
+  @Override
+  public void warn(String message, Object... arguments) {
+    if (isWarnEnabled()) {
+      logger.warn(String.format("%s%s", tag, message), arguments);
+    }
+  }
+
+  @Override
+  public void warn(Object obj) {
+    if (logger.isWarnEnabled()) {
+      logger.warn(serializeJson(tag, obj));
+    }
+  }
+
+  @Override
+  public boolean isErrorEnabled() {
+    return logger.isErrorEnabled();
+  }
+
+  @Override
+  public void error(String message, Object... arguments) {
+    if (isErrorEnabled()) {
+      logger.error(String.format("%s%s", tag, message), arguments);
+    }
+  }
+
+  @Override
+  public void error(Object obj) {
+    if (logger.isErrorEnabled()) {
+      logger.error(serializeJson(tag, obj));
+    }
+  }
+
+  private String serializeJson(String tag, Object obj) {
+    String result;
+    try {
+      if (tag == null) {
+        if (obj instanceof String) {
+          result = (String) obj;
+        } else {
+          result = OBJECT_MAPPER.writeValueAsString(obj);
+        }
+      } else {
+        StringWriter sw = new StringWriter();
+        sw.append(tag);
+        if (obj instanceof String) {
+          sw.append((String) obj);
+        } else {
+          OBJECT_MAPPER.writeValue(sw, obj);
+        }
+        result = sw.toString();
+      }
+    } catch (IOException ex) {
+      logger.error("Error serializing to JSON", ex);
+      result = tag;
+    }
     return result != null ? result : "";
-
   }
 
 }

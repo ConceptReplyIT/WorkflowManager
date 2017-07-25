@@ -72,8 +72,7 @@ public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements Wor
       Long requestId = executorService.scheduleRequest(cmdClass, ctxCMD);
       logger.debug("Request scheduled successfully with id {}", requestId);
     } catch (Exception e) {
-      logger.error("Unable to instantiate requested command ({})", cmdClass, e);
-
+      logger.error("Unable to schedule command ({})", cmdClass, e);
       manager.abortWorkItem(workItem.getId());
     }
   }
@@ -83,18 +82,9 @@ public class AsyncEJBWorkItemHandler extends AsyncWorkItemHandler implements Wor
     @Override
     public void onCommandDone(CommandContext ctx, ExecutionResults results) {   
       try {
-        WorkItem workItem = EJBWorkItemHelper.getWorkItem(ctx);
-        EJBWorkItemHelper.checkWorkItemOutcome(results, workItem, ctx, logger);
+        EJBWorkItemHelper.initMdcFromCtx(ctx);
+        EJBWorkItemHelper.checkWorkItemOutcome(results, ctx, logger);
         super.onCommandDone(ctx, results);
-      } finally {
-        EJBWorkItemHelper.mdcCleanUp(ctx);
-      }
-    }
-
-    @Override
-    public void onCommandError(CommandContext ctx, Throwable exception) {
-      try {
-        super.onCommandError(ctx, exception);
       } finally {
         EJBWorkItemHelper.mdcCleanUp(ctx);
       }

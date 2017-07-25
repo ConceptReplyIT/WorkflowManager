@@ -32,7 +32,7 @@ public abstract class BaseCommand<T extends BaseCommand<T>> extends AbstractBase
   private T self;
 
   @PostConstruct
-  private void init() throws Exception {
+  private void init() {
     self = applicationContext.getBean(this.selfClazz);
   }
 

@@ -1,5 +1,7 @@
 package it.reply.workflowmanager.logging;
 
+import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 
 public abstract class CustomLogger {
@@ -7,9 +9,8 @@ public abstract class CustomLogger {
   protected Logger logger;
   protected String tag;
 
-  public CustomLogger(Logger logger, Class<?> clazz) {
-    this.logger = logger;
-    setTag(clazz.toString());
+  protected CustomLogger(Logger logger) {
+    this.logger = Preconditions.checkNotNull(logger);
   }
 
   public String getTag() {
@@ -17,25 +18,40 @@ public abstract class CustomLogger {
   }
 
   public void setTag(String tag) {
-    this.tag = "(" + tag + ") - ";
+    if (tag == null) {
+      this.tag = "";
+    } else {
+      this.tag = String.format("(%s) - ", tag);
+    }
   }
 
-  // public abstract void fatal(String message);
-  //
-  // public abstract void fatal(Object message);
+  public abstract boolean isTraceEnabled();
+  
+  public abstract void trace(String message, Object... arguments);
 
-  public abstract void error(String message);
+  public abstract void trace(Object obj);
 
-  public abstract void error(String message, Throwable cause);
+  public abstract boolean isDebugEnabled();
+  
+  public abstract void debug(String message, Object... arguments);
 
-  public abstract void error(Object message);
+  public abstract void debug(Object obj);
 
-  public abstract void info(String message);
+  public abstract boolean isInfoEnabled();
+  
+  public abstract void info(String message, Object... arguments);
 
-  public abstract void info(Object message);
+  public abstract void info(Object obj);
 
-  public abstract void warn(String message);
+  public abstract boolean isWarnEnabled();
+  
+  public abstract void warn(String message, Object... arguments);
 
-  public abstract void warn(Object message);
+  public abstract void warn(Object obj);
 
+  public abstract boolean isErrorEnabled();
+  
+  public abstract void error(String message, Object... arguments);
+
+  public abstract void error(Object obj);
 }

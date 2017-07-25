@@ -2,10 +2,6 @@ package it.reply.workflowmanager.orchestrator.bpm.WIHs;
 
 import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
 
-/* Copyright 2013 JBoss by Red Hat. */
-
-import it.reply.workflowmanager.utils.Constants;
-
 import org.kie.api.executor.CommandContext;
 import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.process.WorkItem;
@@ -46,30 +42,23 @@ public class SyncEJBWorkItemHandler implements WorkItemHandler {
   @Override
   public void executeWorkItem(WorkItem workItem, WorkItemManager manager) {
     try {
-      ExecutionResults exResults = new ExecutionResults();
       DispatcherCommand dispatcherCommand = distpacherCommandClass.newInstance();
-
-      String cmdClass;
-      if ((String) workItem.getParameter(Constants.EJB_COMMAND_CLASS) != null) {
-        cmdClass = (String) workItem.getParameter(Constants.EJB_COMMAND_CLASS);
-        logger.debug("Command class for this execution is {}", cmdClass);
-      } else {
-        cmdClass = distpacherCommandClass.getName();
-        logger.warn("Command class parameter was empty, using {} as fallback", cmdClass);
-      }
 
       CommandContext ctxCMD = EJBWorkItemHelper.buildCommandContext(workItem, logger);
 
       logger.trace("Command context {}", ctxCMD);
 
-      exResults = dispatcherCommand.execute(ctxCMD);
+      ExecutionResults exResults = dispatcherCommand.execute(ctxCMD);
 
-      EJBWorkItemHelper.checkWorkItemOutcome(exResults, workItem, ctxCMD, logger);
+      EJBWorkItemHelper.checkWorkItemOutcome(exResults, ctxCMD, logger);
       manager.completeWorkItem(workItem.getId(), exResults.getData());
 
     } catch (Exception e) {
       logger.error("Unable to instantiate requested command.", e);
       manager.abortWorkItem(workItem.getId());
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
     }
 
   }

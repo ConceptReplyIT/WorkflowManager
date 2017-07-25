@@ -1,29 +1,26 @@
 package it.reply.workflowmanager.orchestrator.bpm.ejbcommands;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+
 import it.reply.workflowmanager.dsl.Error;
-import it.reply.workflowmanager.orchestrator.bpm.WIHs.EJBWorkItemHelper;
-import it.reply.workflowmanager.orchestrator.bpm.WIHs.misc.SignalEvent;
-import it.reply.workflowmanager.utils.Constants;
 import it.reply.workflowmanager.dsl.ErrorCode;
 import it.reply.workflowmanager.dsl.WorkflowErrorCode;
 import it.reply.workflowmanager.logging.CustomLogger;
 import it.reply.workflowmanager.logging.CustomLoggerFactory;
-
-import javax.annotation.Resource;
-import javax.persistence.OptimisticLockException;
-import javax.persistence.PersistenceException;
-import javax.transaction.Status;
-import javax.transaction.UserTransaction;
+import it.reply.workflowmanager.orchestrator.bpm.WIHs.EJBWorkItemHelper;
+import it.reply.workflowmanager.orchestrator.bpm.WIHs.misc.SignalEvent;
+import it.reply.workflowmanager.utils.Constants;
 
 import org.hibernate.StaleObjectStateException;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.process.WorkItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Strings;
-
-import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ExecutionResults;
+import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 
 /**
  * Abstract base class for command implementation.<br/>
@@ -41,9 +38,6 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
   protected final CustomLogger logger;
 
   protected final Class<T> selfClazz;
-  
-  @Resource
-  private UserTransaction userTx;
 
   @SuppressWarnings("unchecked")
   public AbstractBaseCommand() {
@@ -72,14 +66,28 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
   }
 
   @SuppressWarnings("unchecked")
-  public static <C> C getParameter(CommandContext ctx, String parameterName) {
+  public static <C> Optional<C> getOptionalParameter(CommandContext ctx, String parameterName) {
     WorkItem wi = getWorkItem(ctx);
     Object parameter = wi.getParameter(parameterName);
     try {
-      return (C) parameter;
+      return Optional.fromNullable((C) parameter);
     } catch (ClassCastException ex) {
       LOG.error("Error retrieving parameter {} in WorkItem {}", parameterName, wi.getName(), ex);
-      return null;
+      return Optional.absent();
+    }
+  }
+
+  public static <C> C getParameter(CommandContext ctx, String parameterName) {
+    return AbstractBaseCommand.<C>getOptionalParameter(ctx, parameterName).orNull();
+  }
+
+  public static <C> C getRequiredParameter(CommandContext ctx, String parameterName) {
+    Optional<C> optionalValue = AbstractBaseCommand.getOptionalParameter(ctx, parameterName);
+    if (optionalValue.isPresent()) {
+      return optionalValue.get();
+    } else {
+      throw new IllegalArgumentException(
+          String.format("WF parameter with name <%s> cannot be null", parameterName));
     }
   }
 
@@ -113,15 +121,10 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
       }
     }
 
-    if (userTx.getStatus() == Status.STATUS_ACTIVE) {
-      throw new IllegalStateException("There must be no active transaction");
-    }
-
     int tries = 0;
     boolean retryError;
     do {
       retryError = false;
-      userTx.begin();
       try {
         if (tries == 0) {
           exRes = proxyCommand.customExecute(ctx);
@@ -129,17 +132,7 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
           logCommandRetry(exRes, tries, maxNumOfTries);
           exRes = ((RetriableCommand) proxyCommand).retry(ctx);
         }
-        if (userTx.getStatus() == Status.STATUS_MARKED_ROLLBACK) {
-          userTx.rollback();
-        } else {
-          userTx.commit();
-        }
       } catch (Exception e) {
-        try {
-          userTx.rollback();
-        } catch (IllegalStateException iex) {
-          LOG.error("Error trying to rolling back the transaction", iex);
-        }
         boolean persistenceExceptionFound = false;
         Throwable cause = e;
         while (cause != null) {
@@ -171,30 +164,35 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
    * Logs command started info.
    */
   protected void logCommandStarted(final CommandContext ctx) {
-    String WIId = "TBD";
-    String tag = "(Task: " + this.getClass().getName() + ", PID: " + getProcessInstanceId(ctx)
-        + ", WIId: " + WIId + ", params: " + getWorkItem(ctx).getParameters() + ") - ";
-    logger.setTag(tag);
-    logger.info("STARTED");
+    if (logger.isInfoEnabled()) {
+      String WIId = String.valueOf(getWorkItem(ctx).getId());
+      String tag = "(Task: " + this.getClass().getName() + ", PID: " + getProcessInstanceId(ctx)
+          + ", WIId: " + WIId + ", params: " + getWorkItem(ctx).getParameters() + ") - ";
+      logger.setTag(tag);
+      logger.info("STARTED");
+    }
   }
 
   /**
    * Logs command retry info.
    */
   protected void logCommandRetry(final ExecutionResults exResults, int tryNum, int maxNumOfTries) {
-    try {
-      StringBuilder sb = new StringBuilder();
-      sb.append("RETRY, Try ").append(tryNum).append(" of ").append(maxNumOfTries).append(".");
-      @SuppressWarnings("unchecked")
-      SignalEvent<Error> signalEvent = (SignalEvent<Error>) exResults
-          .getData(Constants.SIGNAL_EVENT);
-      if (signalEvent != null && signalEvent.getPayload() != null) {
-        sb.append("\nRetry caused by:\n").append(signalEvent.getPayload().getVerbose())
-            .append("\n");
+    if (logger.isInfoEnabled()) {
+      try {
+        StringBuilder sb = new StringBuilder();
+        sb.append("RETRY, Try ").append(tryNum).append(" of ").append(maxNumOfTries).append(".");
+        @SuppressWarnings("unchecked")
+        SignalEvent<Error> signalEvent =
+            (SignalEvent<Error>) exResults.getData(Constants.SIGNAL_EVENT);
+        if (signalEvent != null && signalEvent.getPayload() != null) {
+          sb.append("\nRetry caused by:\n")
+              .append(signalEvent.getPayload().getVerbose())
+              .append("\n");
+        }
+        logger.info(sb.toString());
+      } catch (Exception ex) {
+        LOG.warn("Cannot log EJBCommand result.", ex);
       }
-      logger.info(sb.toString());
-    } catch (Exception ex) {
-      LOG.warn("Cannot log EJBCommand result.", ex);
     }
   }
 
@@ -202,11 +200,14 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
    * Logs command ended info.
    */
   protected void logCommandEnded(final ExecutionResults exResults) {
-    try {
-      logger.info("ENDED, ResultStatus(" + exResults.getData(Constants.RESULT_STATUS) + "), Result("
-          + (exResults.getData("Result") != null ? exResults.getData("Result") : "") + ")");
-    } catch (Exception ex) {
-      LOG.warn("Cannot log EJBCommand result.", ex);
+    if (logger.isInfoEnabled()) {
+      try {
+        logger
+            .info("ENDED, ResultStatus(" + exResults.getData(Constants.RESULT_STATUS) + "), Result("
+                + (exResults.getData("Result") != null ? exResults.getData("Result") : "") + ")");
+      } catch (Exception ex) {
+        LOG.warn("Cannot log EJBCommand result.", ex);
+      }
     }
   }
 
@@ -273,7 +274,7 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
     exResults.setData(Constants.ERROR_RESULT, error);
     exResults.setData(Constants.SIGNAL_EVENT, signalEvent);
 
-    logger.error("ERROR: " + error);
+    logger.error("ERROR: {}", error);
 
     return exResults;
   }

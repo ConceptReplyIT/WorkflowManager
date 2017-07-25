@@ -37,15 +37,17 @@ public abstract class BaseDispatcherCommand implements DispatcherCommand {
     IEJBCommand<?> ejbCommand = orchestratorContext.getCommand(eJBCommandClass);
     return ejbCommand.execute(ctx);
   }
-  
+
   @Override
   public ExecutionResults execute(CommandContext ctx) throws Exception {
     WorkItem workItem = EJBWorkItemHelper.getWorkItem(ctx);
+    boolean mdcSetted = false;
     try {
 
       if (Constants.ASYNC_WIH_NAME.equals(workItem.getName())) {
         // we must set the MDC only in async task
         EJBWorkItemHelper.initMdcFromCtx(ctx);
+        mdcSetted = true;
       }
 
       String eJBCommandClass = (String) workItem.getParameter(Constants.EJB_COMMAND_CLASS);
@@ -56,13 +58,10 @@ public abstract class BaseDispatcherCommand implements DispatcherCommand {
       }
 
       return dispatch(eJBCommandClass, ctx);
-    } catch (Exception ex) {
-      if (workItem != null && Constants.ASYNC_WIH_NAME.equals(workItem.getName())) {
-        LOG.error("Error executing command", ex);
+    } finally {
+      if (mdcSetted) {
         EJBWorkItemHelper.mdcCleanUp(ctx);
-        // TODO should we handle the exception in some way?
       }
-      throw ex;
     }
   }
 }

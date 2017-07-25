@@ -1,7 +1,5 @@
 package it.reply.workflowmanager.orchestrator.bpm.WIHs;
 
-import com.google.common.collect.Maps;
-
 import it.reply.workflowmanager.orchestrator.bpm.WIHs.misc.SignalEvent;
 import it.reply.workflowmanager.utils.Constants;
 
@@ -19,13 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public final class EJBWorkItemHelper {
 
   private static final Logger LOG = LoggerFactory.getLogger(EJBWorkItemHelper.class);
-      
+
   private EJBWorkItemHelper() {
   }
 
@@ -76,8 +75,7 @@ public final class EJBWorkItemHelper {
   @Deprecated
   public static void signalEvent(WorkItemManager workItemManager, String eventName,
       Object eventPayload, Long processId) {
-    ((org.drools.core.process.instance.WorkItemManager) workItemManager).signalEvent(eventName,
-        eventPayload, processId);
+    workItemManager.signalEvent(eventName, eventPayload, processId);
   }
 
   public static RuntimeManager getRuntimeManager(CommandContext ctx) {
@@ -116,16 +114,17 @@ public final class EJBWorkItemHelper {
    *          an optional logger to log events
    */
   @SuppressWarnings("unchecked")
-  public static void checkWorkItemOutcome(ExecutionResults results, WorkItem workItem,
-      CommandContext ctx, Logger externalLogger) {
+  public static void checkWorkItemOutcome(ExecutionResults results, CommandContext ctx,
+      Logger externalLogger) {
+    WorkItem workItem = EJBWorkItemHelper.getWorkItem(ctx);
     Logger logger = externalLogger != null ? externalLogger : LOG;
     logger.debug("About to complete workItem {}", workItem);
     SignalEvent<Error> signalEvent = (SignalEvent<Error>) results.getData(Constants.SIGNAL_EVENT);
     if (signalEvent != null) {
       Object payload = null;
       switch (signalEvent.getType()) {
-        default:
         case ERROR:
+        default:
           payload = results.getData(Constants.ERROR_RESULT);
           break;
 
@@ -133,12 +132,10 @@ public final class EJBWorkItemHelper {
       RuntimeManager manager = getRuntimeManager(ctx);
       RuntimeEngine engine = null;
       try {
-          engine = getRuntimeEngine(manager, ctx);
+        engine = getRuntimeEngine(manager, ctx);
         signalEvent(engine.getKieSession(), signalEvent.getName(), payload,
             workItem.getProcessInstanceId());
-        logger.debug(
-              "Command threw {} signal with payload {}", signalEvent.getType(),
-              payload);
+        logger.debug("Command threw {} signal with payload {}", signalEvent.getType(), payload);
       } finally {
         if (engine != null) {
           manager.disposeRuntimeEngine(engine);
@@ -154,7 +151,7 @@ public final class EJBWorkItemHelper {
       @SuppressWarnings("unchecked")
       Map<String, String> oldMdcCtx = MDC.getCopyOfContextMap();
       if (oldMdcCtx == null) {
-        oldMdcCtx = Maps.newHashMap();
+        oldMdcCtx = new HashMap<>();
       }
       @SuppressWarnings("unchecked")
       Map<String, String> MDCctx = (Map<String, String>) ctx.getData("MDC");
@@ -162,7 +159,8 @@ public final class EJBWorkItemHelper {
         for (Entry<String, String> entry : MDCctx.entrySet()) {
           String oldValue = oldMdcCtx.put(entry.getKey(), entry.getValue());
           if (oldValue != null) {
-            LOG.warn("Overwriting MDC for key {}: MDC value {}, ctx value {}", entry.getKey(), oldValue, entry.getValue());
+            LOG.warn("Overwriting MDC for key {}: MDC value {}, ctx value {}", entry.getKey(),
+                oldValue, entry.getValue());
           }
         }
         MDC.setContextMap(oldMdcCtx);
@@ -171,7 +169,7 @@ public final class EJBWorkItemHelper {
       LOG.error("Error initializing MDC", ex);
     }
   }
-  
+
   public static void putMdcInCtx(CommandContext ctx) {
     @SuppressWarnings("unchecked")
     Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -188,10 +186,12 @@ public final class EJBWorkItemHelper {
         for (Entry<String, String> entry : MDCctx.entrySet()) {
           Object mdcValue = MDC.get(entry.getKey());
           if (mdcValue == null) {
-            LOG.warn("Mismatch while cleaning MDC for key {}: no MDC value found, ctx value {}", entry.getKey(), entry.getValue());
+            LOG.warn("Mismatch while cleaning MDC for key {}: no MDC value found, ctx value {}",
+                entry.getKey(), entry.getValue());
           } else {
             if (!mdcValue.equals(entry.getValue())) {
-              LOG.warn("Mismatch while cleaning MDC for key {}: MDC value {}, ctx value {}", entry.getKey(), mdcValue, entry.getValue());
+              LOG.warn("Mismatch while cleaning MDC for key {}: MDC value {}, ctx value {}",
+                  entry.getKey(), mdcValue, entry.getValue());
             }
             MDC.remove(entry.getKey());
           }
