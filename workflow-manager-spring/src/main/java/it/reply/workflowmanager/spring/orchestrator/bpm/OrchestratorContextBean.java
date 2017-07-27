@@ -25,7 +25,7 @@ public class OrchestratorContextBean extends AbstractOrchestratorContext {
   private final ApplicationContext applicationContext;
   
   @Autowired
-  private OrchestratorContextBean(ApplicationContext applicationContext) {
+  public OrchestratorContextBean(ApplicationContext applicationContext) {
     this.applicationContext = Objects.requireNonNull(applicationContext, "Application Context must not be null");
     APPLICATION_CONTEXT = applicationContext;
     LATCH.countDown();

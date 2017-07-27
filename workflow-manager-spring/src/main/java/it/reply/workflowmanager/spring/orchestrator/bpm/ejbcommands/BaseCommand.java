@@ -24,21 +24,13 @@ import javax.annotation.PostConstruct;
 // @ManageEntities
 public abstract class BaseCommand<T extends BaseCommand<T>> extends AbstractBaseCommand<T> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BaseCommand.class);
-
   @Autowired
   private ApplicationContext applicationContext;
 
-  private T self;
-
+  @SuppressWarnings("unchecked")
   @PostConstruct
   private void init() {
-    self = applicationContext.getBean(this.selfClazz);
-  }
-
-  @Override
-  protected T getFacade() {
-    return self;
+    setFacade((T) applicationContext.getBean(this.getClass()));
   }
 
   @Override

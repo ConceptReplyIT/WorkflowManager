@@ -1,6 +1,7 @@
 package it.reply.workflowmanager.orchestrator.bpm.ejbcommands;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import it.reply.workflowmanager.dsl.Error;
@@ -36,13 +37,13 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
   private static final Logger LOG = LoggerFactory.getLogger(AbstractBaseCommand.class);
 
   protected final CustomLogger logger;
-
-  protected final Class<T> selfClazz;
+  
+  private T self;
 
   @SuppressWarnings("unchecked")
   public AbstractBaseCommand() {
     logger = CustomLoggerFactory.getLogger(this.getClass());
-    selfClazz = (Class<T>) this.getClass();
+    self = (T) this;
   }
 
   /**
@@ -59,7 +60,16 @@ public abstract class AbstractBaseCommand<T extends AbstractBaseCommand<T>>
   /**
    * Returns the proxy on which call business methods.
    */
-  protected abstract T getFacade();
+  protected T getFacade() {
+    return self;
+  }
+
+  /**
+   * Set the proxy on which call business methods.
+   */
+  protected void setFacade(T facade) {
+    this.self = Preconditions.checkNotNull(facade);
+  }
 
   public static WorkItem getWorkItem(CommandContext ctx) {
     return (WorkItem) ctx.getData(Constants.WORKITEM);
