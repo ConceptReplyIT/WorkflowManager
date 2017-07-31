@@ -10,7 +10,7 @@
 
 <!-- 	<groupId>it.reply</groupId> -->
 	<artifactId>workflow-manager</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.4-BETA.2</version>
 	<packaging>pom</packaging>
 
 	<modules>
