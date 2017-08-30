@@ -63,34 +63,49 @@ public class WorkflowRuntimeConfig {
 
 //  @Bean(destroyMethod = "close")
 //  @Singleton
-//  public RuntimeManager singletonRuntimeManager() throws Exception {
+//  public RuntimeManagerFactoryBean singletonRuntimeManagerFactoryBean() throws Exception {
 //    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
 //    rmfb.setIdentifier("default-singleton");
 //    rmfb.setRuntimeEnvironment(runtimeEnvironment());
 //    rmfb.setType("SINGLETON");
-//    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
-//    return rm;
+//    return rmfb;
+//  }
+//
+//  @Bean(destroyMethod = "close")
+//  @Singleton
+//  public RuntimeManager singletonRuntimeManager() throws Exception {
+//    return (RuntimeManager) singletonRuntimeManagerFactoryBean().getObject();
 //  }
 
   @Bean(destroyMethod = "close")
   @PerProcessInstance
-  public RuntimeManager perProcessInstanceRuntimeManager() throws Exception {
+  public RuntimeManagerFactoryBean perProcessInstanceRuntimeManagerFactoryBean() throws Exception {
     RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
     rmfb.setIdentifier("default-per-process");
     rmfb.setRuntimeEnvironment(runtimeEnvironment());
     rmfb.setType("PER_PROCESS_INSTANCE");
-    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
-    return rm;
+    return rmfb;
+  }
+
+  @Bean(destroyMethod = "close")
+  @PerProcessInstance
+  public RuntimeManager perProcessInstanceRuntimeManager() throws Exception {
+    return (RuntimeManager) perProcessInstanceRuntimeManagerFactoryBean().getObject();
   }
 
 //  @Bean(destroyMethod = "close")
 //  @PerRequest
-//  public RuntimeManager perRequesteRuntimeManager() throws Exception {
+//  public RuntimeManagerFactoryBean perRequesteRuntimeManagerFactoryBean() throws Exception {
 //    RuntimeManagerFactoryBean rmfb = new RuntimeManagerFactoryBean();
 //    rmfb.setIdentifier("default-per-request");
 //    rmfb.setRuntimeEnvironment(runtimeEnvironment());
 //    rmfb.setType("PER_REQUEST");
-//    RuntimeManager rm = (RuntimeManager) rmfb.getObject();
-//    return rm;
+//    return rmfb;
+//  }
+//
+//  @Bean(destroyMethod = "close")
+//  @PerRequest
+//  public RuntimeManager perRequesteRuntimeManager() throws Exception {
+//    return (RuntimeManager) perRequesteRuntimeManagerFactoryBean().getObject();
 //  }
 }
