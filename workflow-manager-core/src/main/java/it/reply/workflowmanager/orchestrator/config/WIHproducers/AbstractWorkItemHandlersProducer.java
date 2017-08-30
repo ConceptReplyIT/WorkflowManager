@@ -41,6 +41,7 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
       ConfigProducer configProducer) {
     executorService.setThreadPoolSize(configProducer.getExecutorServiceThreadPoolSize());
     executorService.setInterval(configProducer.getExecutorServiceInterval());
+    executorService.setRetries(configProducer.getExecutorServiceRetries());
     this.executorService = executorService;
     if (!executorService.isActive()) {
       // TODO is it right to initialize it here?
