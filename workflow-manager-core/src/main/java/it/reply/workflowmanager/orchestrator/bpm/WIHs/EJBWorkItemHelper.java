@@ -174,6 +174,7 @@ public final class EJBWorkItemHelper {
     @SuppressWarnings("unchecked")
     Map<String, String> mdc = MDC.getCopyOfContextMap();
     if (mdc != null && !mdc.isEmpty()) {
+      mdc.remove("btm-gtrid"); // Bitronix Global transaction ID, doesn't need to be carried over
       ctx.setData("MDC", mdc);
     }
   }
