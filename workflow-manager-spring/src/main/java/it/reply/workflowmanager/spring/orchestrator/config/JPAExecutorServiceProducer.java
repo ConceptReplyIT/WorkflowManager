@@ -20,12 +20,14 @@
 package it.reply.workflowmanager.spring.orchestrator.config;
 
 import it.reply.workflowmanager.spring.orchestrator.annotations.WorkflowPersistenceUnit;
+import it.reply.workflowmanager.utils.Constants;
 
 import org.jbpm.executor.ExecutorServiceFactory;
 import org.jbpm.executor.impl.ClassCacheManager;
 import org.jbpm.executor.impl.jpa.ExecutorQueryServiceImpl;
 import org.jbpm.executor.impl.jpa.ExecutorRequestAdminServiceImpl;
 import org.jbpm.executor.impl.jpa.JPAExecutorStoreService;
+import org.jbpm.runtime.manager.impl.jpa.EntityManagerFactoryManager;
 import org.kie.api.executor.ExecutorAdminService;
 import org.kie.api.executor.ExecutorQueryService;
 import org.kie.api.executor.ExecutorService;
@@ -47,6 +49,7 @@ public class JPAExecutorServiceProducer {
 
   @Bean(destroyMethod = "destroy")
   public ExecutorService produceExecutorService() {
+    EntityManagerFactoryManager.get().addEntityManagerFactory(Constants.PERSISTENCE_UNIT_NAME, emf);
     ExecutorService service = ExecutorServiceFactory.newExecutorService(emf);
 
     return service;
