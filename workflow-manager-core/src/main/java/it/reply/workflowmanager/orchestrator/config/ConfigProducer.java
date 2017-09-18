@@ -48,4 +48,10 @@ public interface ConfigProducer {
     }
 
   }
+
+  public String getCleanUpOlderThanPeriod();
+
+  public String getCleanUpSchedulingPeriod();
+
+  public Integer getCleanUpFirstRunDelay();
 }

@@ -1,5 +1,8 @@
 package it.reply.workflowmanager.orchestrator.config.WIHproducers;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
 import it.reply.workflowmanager.orchestrator.bpm.WIHs.AsyncEJBWorkItemHandler;
 import it.reply.workflowmanager.orchestrator.bpm.WIHs.SyncEJBWorkItemHandler;
 import it.reply.workflowmanager.orchestrator.bpm.commands.DispatcherCommand;
@@ -46,20 +49,21 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
     if (!executorService.isActive()) {
       // TODO is it right to initialize it here?
       LOG.info("Initializing ExecutorService.");
-      scheduleDBCleanUp(executorService);
+      scheduleDBCleanUp(executorService, configProducer.getCleanUpOlderThanPeriod(),
+          configProducer.getCleanUpSchedulingPeriod(), configProducer.getCleanUpFirstRunDelay());
       executorService.init();
     }
   }
 
   // Schedule delay of the first run of the LogCleanupCommand (in seconds)
-  private static int firstRunDelay = 120;
+  private final static int firstRunDelay = 120;
 
   // Scheduling period of the LogCleanupCommand (iTimer expression)
-  private static String schedulingPeriod = "24h";
+  private final static String schedulingPeriod = "24h";
 
   // LogCleanupCommand will clean records older than the actual time
   // subtracted this value (Timer expression)
-  private static String olderThanPeriod = "30d";
+  private final static String olderThanPeriod = "30d";
 
   @Override
   public Map<String, WorkItemHandler> getWorkItemHandlers(final String identifier,
@@ -84,15 +88,18 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
    * @param executorService
    *          must not be initialized in orded to cancel pending requests
    */
-  private static void scheduleDBCleanUp(ExecutorService executorService) {
+  private static void scheduleDBCleanUp(ExecutorService executorService, String olderThanPeriod,
+      String schedulingPeriod, Integer firstRunDelay) {
     if (executorService.isActive()) {
       throw new IllegalStateException("ExecutorService must not be initialized.");
     }
     String commandId = LogCleanupCommand.class.getName();
 
     CommandContext ctx = new CommandContext();
-    ctx.setData("OlderThanPeriod", olderThanPeriod);
-    ctx.setData("NextRun", schedulingPeriod);
+    ctx.setData("OlderThanPeriod", MoreObjects.firstNonNull(olderThanPeriod,
+        AbstractWorkItemHandlersProducer.olderThanPeriod));
+    ctx.setData("NextRun", MoreObjects.firstNonNull(schedulingPeriod,
+        AbstractWorkItemHandlersProducer.schedulingPeriod));
 
     // if there is already a pending request with the same parameters keep it and cancel the others,
     // otherwise cancel everything
@@ -138,7 +145,8 @@ public abstract class AbstractWorkItemHandlersProducer implements WorkItemHandle
     }
     if (okReq == null) {
       Calendar cal = Calendar.getInstance();
-      cal.add(Calendar.SECOND, firstRunDelay);
+      cal.add(Calendar.SECOND, MoreObjects.firstNonNull(firstRunDelay,
+          AbstractWorkItemHandlersProducer.firstRunDelay));
       executorService.scheduleRequest(commandId, cal.getTime(), ctx);
     }
   }
